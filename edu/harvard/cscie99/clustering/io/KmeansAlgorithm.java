@@ -1,7 +1,9 @@
 package edu.harvard.cscie99.clustering.io;
 
 
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -19,7 +21,7 @@ public class KmeansAlgorithm
 	
 
 	@SuppressWarnings("unchecked")
-	ClusteringResult cluster(Double[][] data, Map<String,Object> clusterParams) 
+	ClusteringResult cluster(List<String> rowLabels, Double[][] data, Map<String,Object> clusterParams) 
 	{
 		Integer featuresNum = data[0].length;
 		Integer maxiterations = 8;
@@ -27,7 +29,7 @@ public class KmeansAlgorithm
 		@SuppressWarnings("unused")
 		String distanceMetric = "Euclidian";
 		String InitialMethod = ""; //{random, initialIndices, initialCentroids};"
-		List<Double[]> InitialCentroids;
+		List<Double[]> InitialCentroids = new ArrayList<Double[]>();
 		List<Integer> initialIndices;
 
 		if (clusterParams.containsKey("maxiterations"))
@@ -48,34 +50,145 @@ public class KmeansAlgorithm
 			{
 				initialIndices = (List<Integer>) clusterParams.get("initialIndices");
 				k = initialIndices.size();
-				InitialCentroids = getListOfIniCentroids(data, initialIndices);	
+				InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 			}
 			else if (InitialMethod.equals("initialCentroids"))
 			{
-				InitialCentroids = (List<Double[]>) clusterParams.get("InitialCentroids");
+				InitialCentroids = (ArrayList<Double[]>) clusterParams.get("InitialCentroids");
 				k = InitialCentroids.size();
 			}
 			else
 			{
 				// randomly choose k indices from the matrix
 				initialIndices = getListOfRandomIndicies (0, data.length, k);
-				InitialCentroids = getListOfIniCentroids(data, initialIndices);	
+				InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 			}
 			
 		}
 		
-		//calculate Euclidean distances to all data points for each centroid
+		initialIndices = getListOfRandomIndicies (0, data.length, k);
+		InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 		
+		// calculate Euclidean distances to all data points for each centroid
+		// each centroid represents the center of the cluster
 		
+		List<Integer> dataToclusterMap = new ArrayList<Integer>();
+		List<Integer> previousDataToclusterMap = new ArrayList<Integer>();
+		List<List<Integer>> clusterToDataList = new ArrayList<List<Integer>>();
+		List<Integer> listOfInts = new ArrayList<Integer>();
+		for (int i = 0; i<data.length; i++)
+		{
+			dataToclusterMap.set(i, null);
+			previousDataToclusterMap.set(i, null);
+		}
+		
+		for (int i = 0; i<k; i++ )
+		{
+			clusterToDataList.set(i, null);
+		}
+		
+		boolean converged = false;
+		while ( maxiterations!=0 && converged == false )
+		{
+			maxiterations--;
+			List<Double> tempArrayList = new ArrayList<Double>();
+			
+			Integer clusterNum;
+			Double closestD;
+			
+			for (Integer i = 0; i < data.length; i++) 
+			{
+				//String inputLabel = "inputLabel" + i.toString();
+				
+				for (Double[] centr : InitialCentroids)
+				{
+					tempArrayList.add(euclidianDistance(centr, data[i]));
+				}
+				// determine what centroid is closest to the data current point
+				
+				closestD = Collections.min(tempArrayList);
+				
+				clusterNum = tempArrayList.indexOf(closestD);
+				listOfInts = clusterToDataList.get(clusterNum);
+				listOfInts.add(i);
+				clusterToDataList.set(clusterNum, listOfInts);
+				
+				dataToclusterMap.set(i, clusterNum);
+				
+			}
+			// check if converged
+			converged = ifCentroidsConverged( previousDataToclusterMap, dataToclusterMap );
+			
+			previousDataToclusterMap = dataToclusterMap;
+			
+			// get mean value of all points belong a specific cluster to update initial centroid
+			// if one of the centroid appears null after calculations, cluster is a single point (leave the initial value for this centroid)
+			Double[] tempMeanCentr;
+			
+			Integer checkNullEntry = 0;
+			for (List<Integer> clusterPoints : clusterToDataList)
+			{
+				checkNullEntry++;
+				
+				if ( !clusterPoints.isEmpty() )
+				{
+					tempMeanCentr = getAverageCentroid(getListOfDataPointsPerIndices (data, clusterPoints));
+					InitialCentroids.set(checkNullEntry, tempMeanCentr);
+				}
+			}
+	
+		}	
 		
 		return null;
 		
 	}
 	
 	
-	List<Double[]> getListOfIniCentroids(Double[][] data, List<Integer> initialIndices)
+	private static boolean ifCentroidsConverged( List<Integer> previousDataToclusterMap, List<Integer> dataToclusterMap )
 	{
-		List<Double[]> InitialCentroids = new LinkedList<Double[]>();;
+		boolean result = true;
+		// compare current map of data to cluster with previous one
+		for (int i = 0; i<previousDataToclusterMap.size(); i++)
+		{
+			
+			if ( !previousDataToclusterMap.get(i).equals(dataToclusterMap.get(i)) )
+			{
+				result = false;
+			}
+		}
+		return result;
+	}
+	
+	private static Double[] getAverageCentroid (List<Double[]> ListOfClusterDataPoints)
+	{
+		Integer featNum = ListOfClusterDataPoints.get(0).length;
+		Double[] sumCentrVal = new Double[featNum];
+		
+		for (int m = 0; m<sumCentrVal.length; m++)
+		{
+			sumCentrVal[m] = (double) 0;
+		}
+		
+		for (Double[] centroid : ListOfClusterDataPoints)
+		{
+			for (int i = 0; i<centroid.length; i++)
+			{
+				sumCentrVal[i] = sumCentrVal[i] + centroid[i];
+			}
+		}
+		
+		for (int m = 0; m<sumCentrVal.length; m++)
+		{
+			sumCentrVal[m] = sumCentrVal[m]/ListOfClusterDataPoints.size();
+		}
+		
+		return sumCentrVal;
+	}
+	
+	
+	private static List<Double[]> getListOfDataPointsPerIndices(Double[][] data, List<Integer> initialIndices)
+	{
+		List<Double[]> InitialCentroids = new ArrayList<Double[]>();;
 		
 		Double[] tempArr;
 		for (Integer ini : initialIndices )
@@ -97,7 +210,7 @@ public class KmeansAlgorithm
 	 */
 	private static List<Integer> getListOfRandomIndicies(Integer min, Integer max, Integer k)
 	{
-		List<Integer> result = new LinkedList<Integer>();
+		List<Integer> result = new ArrayList<Integer>();
 		max = max - 1;
 		Integer randomNum;
 		for (int i = 0; i < k; i++)
@@ -115,10 +228,7 @@ public class KmeansAlgorithm
 	}
 	  
 	  
-	ClusteringResult cluster(Map<String, List<Integer>> data, Map<String,Object> clusterParams)
-	{
-		return null;
-	}
+
 	
 	  /**
 	   * Calculates the Euclidean distance between two points represented by  vector.
@@ -137,5 +247,8 @@ public class KmeansAlgorithm
 
 	  }
 	
-	
+		ClusteringResult cluster(Map<String, List<Integer>> data, Map<String,Object> clusterParams)
+		{
+			return null;
+		}
 }
