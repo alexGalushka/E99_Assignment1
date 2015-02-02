@@ -72,14 +72,15 @@ public class KmeansAlgorithm
 		// calculate Euclidean distances to all data points for each centroid
 		// each centroid represents the center of the cluster
 		
-		List<Integer> dataToclusterMap = new ArrayList<Integer>();
-		List<Integer> previousDataToclusterMap = new ArrayList<Integer>();
+		List<Integer> dataToclusterList = new ArrayList<Integer>();
+		List<Integer> previousDataToclusterList = new ArrayList<Integer>();
+		
 		List<List<Integer>> clusterToDataList = new ArrayList<List<Integer>>();
 		List<Integer> listOfInts = new ArrayList<Integer>();
 		for (int i = 0; i<data.length; i++)
 		{
-			dataToclusterMap.set(i, null);
-			previousDataToclusterMap.set(i, null);
+			dataToclusterList.set(i, null);
+			previousDataToclusterList.set(i, null);
 		}
 		
 		for (int i = 0; i<k; i++ )
@@ -113,13 +114,13 @@ public class KmeansAlgorithm
 				listOfInts.add(i);
 				clusterToDataList.set(clusterNum, listOfInts);
 				
-				dataToclusterMap.set(i, clusterNum);
+				dataToclusterList.set(i, clusterNum);
 				
 			}
 			// check if converged
-			converged = ifCentroidsConverged( previousDataToclusterMap, dataToclusterMap );
+			converged = ifCentroidsConverged( previousDataToclusterList, dataToclusterList );
 			
-			previousDataToclusterMap = dataToclusterMap;
+			previousDataToclusterList = dataToclusterList;
 			
 			// get mean value of all points belong a specific cluster to update initial centroid
 			// if one of the centroid appears null after calculations, cluster is a single point (leave the initial value for this centroid)
@@ -139,19 +140,29 @@ public class KmeansAlgorithm
 	
 		}	
 		
-		return null;
+		Map<String,Integer> dataToclusterMap = new HashMap<String,Integer>();
+		
+		int i = 0;
+		for (String rowL : rowLabels)
+		{
+			i++; 
+			dataToclusterMap.put(rowL, dataToclusterList.get(i));
+		}
+			
+		ClusteringResult result = new ClusteringResult( dataToclusterMap );
+		return result;
 		
 	}
 	
 	
-	private static boolean ifCentroidsConverged( List<Integer> previousDataToclusterMap, List<Integer> dataToclusterMap )
+	private static boolean ifCentroidsConverged( List<Integer> previousdataToclusterList, List<Integer> dataToclusterList )
 	{
 		boolean result = true;
 		// compare current map of data to cluster with previous one
-		for (int i = 0; i<previousDataToclusterMap.size(); i++)
+		for (int i = 0; i<previousdataToclusterList.size(); i++)
 		{
 			
-			if ( !previousDataToclusterMap.get(i).equals(dataToclusterMap.get(i)) )
+			if ( !previousdataToclusterList.get(i).equals(dataToclusterList.get(i)) )
 			{
 				result = false;
 			}

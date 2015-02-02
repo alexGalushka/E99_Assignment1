@@ -1,6 +1,10 @@
 package edu.harvard.cscie99.clustering.io;
 
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
 import java.util.ArrayList;
+
 
 public class ClusteringAlgorithmTest {
 	
@@ -14,4 +18,26 @@ public class ClusteringAlgorithmTest {
 				= new ArrayList<Float[]>();//new Float[featuresNum]
 	 */
 
+	public static void main(String[] args)
+	{
+		String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/iris.txt";
+
+		MatrixReader instance = new MatrixReader();
+	    try 
+	    {
+	        instance.loadData(FILENAME);
+	    } 
+	    catch(IOException ioe)
+	    {
+	        System.out.println("IOError : " + ioe.getMessage());
+	        fail("Could not load " + FILENAME);
+	    }
+	    
+	    ClusteringResult result;
+	    KmeansAlgorithm algorithm = new KmeansAlgorithm();
+	    
+	    result = algorithm.cluster(rowLabels, data, clusterParams);
+	    
+	}
+    
 }
