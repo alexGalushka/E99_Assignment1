@@ -134,7 +134,7 @@ public class FingerprintReaderTest {
         FingerprintReader instance = new FingerprintReader();
         try {
             instance.loadData(FILENAME);
-            double[][] result = instance.getRawMatrix();
+            Double[][] result = instance.getRawMatrix();
             assertEquals(80, result.length);
             assertEquals(2045, result[0].length);
             assertEquals(1, result[0][16], 1E-5);
@@ -151,7 +151,7 @@ public class FingerprintReaderTest {
         } catch(IOException ioe) {
             fail("Could not load file " + FILENAME + "\n" + ioe.getMessage());
         }        @SuppressWarnings("unused")
-		double[][] expResult = null;
+		Double[][] expResult = null;
     }
     
 }

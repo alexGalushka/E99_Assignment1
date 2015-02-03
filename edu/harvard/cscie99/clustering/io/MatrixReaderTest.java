@@ -230,8 +230,8 @@ public class MatrixReaderTest {
         } catch(IOException ioe) {
             fail("Could not load " + FILENAME);
         }
-        double expResult = 0.4;
-        double result = instance.getRawMatrix()[5][3];
+        Double expResult = 0.4;
+        Double result = instance.getRawMatrix()[5][3];
         assertEquals(expResult, result, 1E-5);
     }
 
@@ -248,8 +248,8 @@ public class MatrixReaderTest {
             System.out.println("IOError : " + ioe.getMessage());
             fail("Could not load " + FILENAME);
         }
-        double expResult = 0.788031;
-        double[][] result = instance.getNormalizedMatrix();
+        Double expResult = 0.788031;
+        Double[][] result = instance.getNormalizedMatrix();
         int size = result.length;
         assertEquals(150, result.length);
         assertEquals(4, result[0].length);

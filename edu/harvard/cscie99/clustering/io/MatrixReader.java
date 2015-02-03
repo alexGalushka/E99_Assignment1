@@ -16,7 +16,7 @@ import java.util.HashMap;
  */
 public class MatrixReader {
     private int FIRST_LINE_COUNT = 5;
-    public final static double EPSILON = 1E-8;
+    public final static Double EPSILON = 1E-8;
     private final ArrayList<String> colHeaders = new ArrayList<String>();
     private final ArrayList<String> rowHeaders = new ArrayList<String>();
     public final static String[] DELIMITERS = {",",";","\\t","\\s","\\s+"};
@@ -127,12 +127,12 @@ public class MatrixReader {
     protected boolean determineIfRowHeader(ArrayList<String> firstLines, String delimiter) {
         int linenum = 0;
         boolean isOrdered = true;
-        double prevNumber= 0.0;
+        Double prevNumber= 0.0;
         for(String line : firstLines) {
             if(linenum != 0) {
                 String firstToken = line.split(delimiter)[0];
                 try {
-                    double number = Double.parseDouble(firstToken);
+                    Double number = Double.parseDouble(firstToken);
                     if(linenum > 1) {
                         if(Math.abs(Math.round(number) - number) > EPSILON ||
                             Math.abs(number - prevNumber - 1.0) > EPSILON) {
@@ -183,7 +183,7 @@ public class MatrixReader {
         }
         boolean allTokensNumeric = true;
         boolean isOrdered     = true;
-        double prevValue = 0.0;
+        Double prevValue = 0.0;
         for(int col = startCol; col < numTokens && allTokensNumeric && isOrdered; col++) {
             try {
                 Double value = Double.parseDouble(tokens[col]);
@@ -221,7 +221,7 @@ public class MatrixReader {
     }
 
 
-    private boolean isInteger(double value) {
+    private boolean isInteger(Double value) {
         return Math.abs(value - Math.round(value)) < EPSILON;
     }
     
@@ -231,7 +231,7 @@ public class MatrixReader {
      * @param prevValue
      * @return 
      */
-    private boolean oneLarger(double value, double prevValue) {
+    private boolean oneLarger(Double value, Double prevValue) {
         return Math.abs(value - prevValue - 1) < EPSILON;
     }
     
@@ -281,8 +281,8 @@ public class MatrixReader {
     /**
      * Returns a matrix of raw values
      */
-    public double[][] getRawMatrix() {
-        double[][] mtx = new double[numRows][numCols];
+    public Double[][] getRawMatrix() {
+        Double[][] mtx = new Double[numRows][numCols];
         int row = 0;
         for(ArrayList<Double> rowValues : matrixData) {
             for(int col = 0; col < numCols; col++) {
@@ -296,9 +296,9 @@ public class MatrixReader {
     /**
      * Returns a matrix of N(0,1) normalized values
      */
-    public double[][] getNormalizedMatrix() {
-        double[] means = new double[numCols];
-        double[] stds  = new double[numCols];
+    public Double[][] getNormalizedMatrix() {
+        Double[] means = new Double[numCols];
+        Double[] stds  = new Double[numCols];
         for(int col = 0; col < numCols; col++) {
             means[col] = 0.0;
             stds[col] = 0.0;
@@ -306,7 +306,7 @@ public class MatrixReader {
         int row = 0;
         for(ArrayList<Double> rowValues : matrixData) {
             for(int col = 0; col < numCols; col++) {
-                double value = rowValues.get(col);
+                Double value = rowValues.get(col);
                 means[col] += value;
                 stds[col] += (value*value);
             }
@@ -318,7 +318,7 @@ public class MatrixReader {
             stds[col] = Math.sqrt( stds[col]/(numRows-1) - means[col]*means[col]*numRows/(numRows-1));
         }
         
-        double[][] normMtx = new double[numRows][numCols];
+        Double[][] normMtx = new Double[numRows][numCols];
         row = 0;
         for(ArrayList<Double> rowValues : matrixData) {
             for(int col = 0; col < numCols; col++) {

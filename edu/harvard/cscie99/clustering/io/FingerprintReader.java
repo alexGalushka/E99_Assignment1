@@ -19,7 +19,7 @@ public class FingerprintReader {
     private int FIRST_LINE_COUNT = 5;
     private String nameDelimiter = "";
     private String fpDelimiter = "";
-    public final static double EPSILON = 1E-8;
+    public final static Double EPSILON = 1E-8;
     private final ArrayList<String> rowHeaders = new ArrayList<String>();
     public final static String[] DELIMITERS = {",",";","\\t","\\s","\\s+"};
     @SuppressWarnings("unused")
@@ -165,12 +165,12 @@ public class FingerprintReader {
     protected boolean determineIfRowHeader(ArrayList<String> firstLines, String nameDelimiter) {
         int linenum = 0;
         boolean isOrdered = true;
-        double prevNumber= 0.0;
+        Double prevNumber= 0.0;
         for(String line : firstLines) {
             if(linenum != 0) {
                 String firstToken = line.split(nameDelimiter)[0];
                 try {
-                    double number = Double.parseDouble(firstToken);
+                    Double number = Double.parseDouble(firstToken);
                     if(linenum > 1) {
                         if(Math.abs(Math.round(number) - number) > EPSILON ||
                             Math.abs(number - prevNumber - 1.0) > EPSILON) {
@@ -255,10 +255,10 @@ public class FingerprintReader {
     /**
      * Returns a matrix of raw values
      */
-    public double[][] getRawMatrix() {
+    public Double[][] getRawMatrix() {
         int numRows = name2fp.size();
         int numCols = maxFpValue+1;
-        double[][] mtx = new double[numRows][numCols];
+        Double[][] mtx = new Double[numRows][numCols];
         for(int row = 0; row < numRows; row++) {
             BitSet bitSet = name2fp.get(rowHeaders.get(row));
             for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i+1)) {
@@ -271,11 +271,11 @@ public class FingerprintReader {
     /**
      * Returns a matrix of N(0,1) normalized valus
      */
-    public double[][] getNormalizedMatrix() {
+    public Double[][] getNormalizedMatrix() {
         int numRows = name2fp.size();
         int numCols = maxFpValue+1;
-        double[] means = new double[numCols];
-        double[] stds  = new double[numCols];
+        Double[] means = new Double[numCols];
+        Double[] stds  = new Double[numCols];
         for(int col = 0; col < numCols; col++) {
             means[col] = 0.0;
             stds[col] = 0.0;
@@ -293,7 +293,7 @@ public class FingerprintReader {
             stds[col] = Math.sqrt( stds[col]/numRows - means[col]*means[col]);
         }
         
-        double[][] normMtx = new double[numRows][numCols];
+        Double[][] normMtx = new Double[numRows][numCols];
         for(int row = 0; row < numRows; row++) {
             BitSet bitSet = name2fp.get(rowHeaders.get(row));
             for(int col = 0; col < numCols; col++) {

@@ -43,19 +43,22 @@ public class KmeansAlgorithm
 		}
 		
 		//get initial centroids
-		if (clusterParams.containsKey("InitialMethod"))
+		boolean skipRandom = true;
+		if (clusterParams.containsKey("initialMethod"))
 		{
-			InitialMethod = (String) clusterParams.get("InitialMethod");
+			InitialMethod = (String) clusterParams.get("initialMethod");
 			if (InitialMethod.equals("initialIndices"))
 			{
-				initialIndices = (List<Integer>) clusterParams.get("initialIndices");
+				initialIndices = (List<Integer>) clusterParams.get("initIndices");
 				k = initialIndices.size();
 				InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+				skipRandom = false;
 			}
 			else if (InitialMethod.equals("initialCentroids"))
 			{
 				InitialCentroids = (ArrayList<Double[]>) clusterParams.get("InitialCentroids");
 				k = InitialCentroids.size();
+				skipRandom = false;
 			}
 			else
 			{
@@ -65,9 +68,11 @@ public class KmeansAlgorithm
 			}
 			
 		}
-		
-		initialIndices = getListOfRandomIndicies (0, data.length, k);
-		InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+		if (skipRandom)
+		{
+			initialIndices = getListOfRandomIndicies (0, data.length, k);
+			InitialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+		}
 		
 		// calculate Euclidean distances to all data points for each centroid
 		// each centroid represents the center of the cluster
@@ -76,30 +81,33 @@ public class KmeansAlgorithm
 		List<Integer> previousDataToclusterList = new ArrayList<Integer>();
 		
 		List<List<Integer>> clusterToDataList = new ArrayList<List<Integer>>();
-		List<Integer> listOfInts = new ArrayList<Integer>();
+		
 		for (int i = 0; i<data.length; i++)
 		{
+			dataToclusterList.add(0);
 			dataToclusterList.set(i, null);
-			previousDataToclusterList.set(i, null);
+			previousDataToclusterList.add(0);
 		}
 		
 		for (int i = 0; i<k; i++ )
 		{
+			clusterToDataList.add(null);
 			clusterToDataList.set(i, null);
 		}
 		
 		boolean converged = false;
-		while ( maxiterations!=0 && converged == false )
+		Integer iterCount = 0;
+		while ( maxiterations!=0) //&& converged == false )
 		{
-			maxiterations--;
-			List<Double> tempArrayList = new ArrayList<Double>();
-			
+
 			Integer clusterNum;
 			Double closestD;
 			
 			for (Integer i = 0; i < data.length; i++) 
 			{
 				//String inputLabel = "inputLabel" + i.toString();
+				List<Double> tempArrayList = new ArrayList<Double>();
+				List<Integer> listOfInts = new ArrayList<Integer>();
 				
 				for (Double[] centr : InitialCentroids)
 				{
@@ -110,15 +118,22 @@ public class KmeansAlgorithm
 				closestD = Collections.min(tempArrayList);
 				
 				clusterNum = tempArrayList.indexOf(closestD);
-				listOfInts = clusterToDataList.get(clusterNum);
+				
+				if (clusterToDataList.get(clusterNum) != null)
+				{
+					listOfInts = clusterToDataList.get(clusterNum);
+				}
 				listOfInts.add(i);
 				clusterToDataList.set(clusterNum, listOfInts);
-				
+
 				dataToclusterList.set(i, clusterNum);
 				
 			}
 			// check if converged
-			converged = ifCentroidsConverged( previousDataToclusterList, dataToclusterList );
+			if (iterCount!=0)
+			{
+				converged = ifCentroidsConverged( previousDataToclusterList, dataToclusterList );
+			}
 			
 			previousDataToclusterList = dataToclusterList;
 			
@@ -129,15 +144,16 @@ public class KmeansAlgorithm
 			Integer checkNullEntry = 0;
 			for (List<Integer> clusterPoints : clusterToDataList)
 			{
-				checkNullEntry++;
-				
 				if ( !clusterPoints.isEmpty() )
 				{
 					tempMeanCentr = getAverageCentroid(getListOfDataPointsPerIndices (data, clusterPoints));
 					InitialCentroids.set(checkNullEntry, tempMeanCentr);
 				}
+				checkNullEntry++;
 			}
 	
+			iterCount ++;
+			maxiterations--;
 		}	
 		
 		Map<String,Integer> dataToclusterMap = new HashMap<String,Integer>();
@@ -145,8 +161,9 @@ public class KmeansAlgorithm
 		int i = 0;
 		for (String rowL : rowLabels)
 		{
-			i++; 
+			
 			dataToclusterMap.put(rowL, dataToclusterList.get(i));
+			i++; 
 		}
 			
 		ClusteringResult result = new ClusteringResult( dataToclusterMap );
