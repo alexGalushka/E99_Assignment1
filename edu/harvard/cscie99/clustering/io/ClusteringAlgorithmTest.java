@@ -207,6 +207,14 @@ public class ClusteringAlgorithmTest
 			    Double[][] data = instance.getRawMatrix();
 			    List<String> rowLabels = createLables(data.length);
 			    result = algorithm.cluster(rowLabels, instance.getRawMatrix(), clusterParam);
+			    try 
+			    {
+					result.writeClusterLabels();
+				} catch (IOException e) 
+			    {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		    else
 		    {
