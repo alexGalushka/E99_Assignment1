@@ -10,8 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 //import org.apache.mahout.common.distance;
+import java.util.Set;
 
-public class KmeansAlgorithmImpl implements ClusteringAlgorithm
+public class KmeansAlgorithmImpl implements ClusteringMethod
 {
 	// Algorithm summary:
 	
@@ -23,7 +24,13 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 	
 	// 4. Repeat from 2
 	
-
+    /**
+     * Determines clusters, groups data points per each cluster
+     * @param rowLabels list of row labels
+     * @param data input data, represented by Double[][]
+     * @param clusterParams algorithm parameters
+     * @return ClusteringResult object
+     */
 	@SuppressWarnings("unchecked")
 	public ClusteringResult cluster(List<String> rowLabels, Double[][] data, Map<String,Object> clusterParams) 
 	{
@@ -31,9 +38,9 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		Integer k = 7;
 		@SuppressWarnings("unused")
 		String distanceMetric = "Euclidian";
-		String InitialMethod = ""; //{random, initialIndices, initialCentroids};"
-		List<Double[]> initialCentroids = new ArrayList<Double[]>();
-		List<Double[]> previousInitialCentroids = new ArrayList<Double[]>();
+		String initialmethod = ""; //{random, initialindices, initialcentroids};"
+		List<Double[]> initialcentroids = new ArrayList<Double[]>();
+		List<Double[]> previousinitialcentroids = new ArrayList<Double[]>();
 		List<Integer> initialIndices;
 
 		// switch in between 2 methods for convergence
@@ -51,25 +58,25 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		
 		//get initial centroids
 		boolean skipRandom = true;
-		if (clusterParams.containsKey("initialMethod"))
+		if (clusterParams.containsKey("initialmethod"))
 		{
-			InitialMethod = (String) clusterParams.get("initialMethod");
-			if (InitialMethod.equals("initialIndices"))
+			initialmethod = (String) clusterParams.get("initialmethod");
+			if (initialmethod.equals("initialindices"))
 			{
-				if ( clusterParams.containsKey("initIndices") )
+				if ( clusterParams.containsKey("initindices") )
 				{
-				initialIndices = (List<Integer>) clusterParams.get("initIndices");
+				initialIndices = (List<Integer>) clusterParams.get("initindices");
 				k = initialIndices.size();
-				initialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+				initialcentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 				skipRandom = false;
 				}
 			}
-			else if (InitialMethod.equals("initialCentroids"))
+			else if (initialmethod.equals("initialcentroids"))
 			{
-				if ( clusterParams.containsKey("initialCentroids") )
+				if ( clusterParams.containsKey("initialcentroids") )
 				{
-					initialCentroids = (ArrayList<Double[]>) clusterParams.get("initialCentroids");
-					k = initialCentroids.size();
+					initialcentroids = (ArrayList<Double[]>) clusterParams.get("initialcentroids");
+					k = initialcentroids.size();
 					skipRandom = false;
 				}
 			}
@@ -77,16 +84,16 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 			{
 				// randomly choose k indices from the matrix
 				initialIndices = getListOfRandomIndicies (0, data.length, k);
-				initialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+				initialcentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 				skipRandom = false;
 			}
 			
 		}
 		if (skipRandom)
 		{
-			// over kill, but a fool proof, in case initialMethod was missed completely
+			// over kill, but a fool proof, in case initialmethod was missed completely
 			initialIndices = getListOfRandomIndicies (0, data.length, k);
-			initialCentroids = getListOfDataPointsPerIndices(data, initialIndices);	
+			initialcentroids = getListOfDataPointsPerIndices(data, initialIndices);	
 		}
 		
 		// calculate Euclidean distances to all data points for each centroid
@@ -124,7 +131,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 				tempArrayList = new ArrayList<Double>();
 				listOfInts = new ArrayList<Integer>();
 				
-				for (Double[] centr : initialCentroids)
+				for (Double[] centr : initialcentroids)
 				{
 					tempArrayList.add(euclidianDistance(centr, data[i]));
 				}
@@ -157,7 +164,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 				if ( !clusterPoints.isEmpty() )
 				{
 					tempMeanCentr = getAverageCentroid(getListOfDataPointsPerIndices (data, clusterPoints));
-					initialCentroids.set(checkNullEntry, tempMeanCentr);
+					initialcentroids.set(checkNullEntry, tempMeanCentr);
 				}
 				checkNullEntry++;
 			}
@@ -168,7 +175,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 				if (ifDataTallAndNarrow)
 				{
 					Double convDelta = 0.09;
-					converged = ifCentroidsConvergedTallNarrow( previousInitialCentroids, initialCentroids, convDelta);
+					converged = ifCentroidsConvergedTallNarrow( previousinitialcentroids, initialcentroids, convDelta);
 				}
 				else
 				{
@@ -176,7 +183,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 				}
 			}
 	         
-			previousInitialCentroids = initialCentroids;
+			previousinitialcentroids = initialcentroids;
 			
 			iterCount ++;
 			maxiterations--;
@@ -197,7 +204,12 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		
 	}
 	
-	
+	/**
+	 * check if the cluster data has been changed
+	 * @param previousdataToclusterList
+	 * @param dataToclusterList
+	 * @return true or false
+	 */
 	private static boolean ifCentroidsConvergedShortWide( List<Integer> previousdataToclusterList, List<Integer> dataToclusterList )
 	{
 		boolean result = true;
@@ -214,14 +226,21 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		return result;
 	}
 	
-	private static boolean ifCentroidsConvergedTallNarrow( List<Double[]> previousinitialCentroids, List<Double[]> initialCentroids, Double delta )
+	/**
+	 * check if the centroids have been changed
+	 * @param previousinitialcentroids
+	 * @param initialcentroids
+	 * @param delta
+	 * @return true or false
+	 */
+	private static boolean ifCentroidsConvergedTallNarrow( List<Double[]> previousinitialcentroids, List<Double[]> initialcentroids, Double delta )
 	{
 		boolean result = true;
 		
-		for (int i = 0; i<previousinitialCentroids.size(); i++)
+		for (int i = 0; i<previousinitialcentroids.size(); i++)
 		{
-			Double[] prevCentr = previousinitialCentroids.get(i);
-			Double[] centr = initialCentroids.get(i);
+			Double[] prevCentr = previousinitialcentroids.get(i);
+			Double[] centr = initialcentroids.get(i);
 			
 			Double prevEntry;
 			Double currEntry;
@@ -250,6 +269,11 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		return result;
 	}
 	
+	/**
+	 * calculated averaged centroid
+	 * @param ListOfClusterDataPoints
+	 * @return averaged centroid
+	 */
 	private static Double[] getAverageCentroid (List<Double[]> ListOfClusterDataPoints)
 	{
 		Integer featNum = ListOfClusterDataPoints.get(0).length;
@@ -276,19 +300,24 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 		return sumCentrVal;
 	}
 	
-	
+	/**
+	 * retrieves data points per indices, list of array of doubles
+	 * @param data
+	 * @param initialIndices
+	 * @return data points per indices, list of array of doubles
+	 */
 	private static List<Double[]> getListOfDataPointsPerIndices(Double[][] data, List<Integer> initialIndices)
 	{
-		List<Double[]> initialCentroids = new ArrayList<Double[]>();;
+		List<Double[]> initialcentroids = new ArrayList<Double[]>();;
 		
 		Double[] tempArr;
 		for (Integer ini : initialIndices )
 		{
 			tempArr = data[ini];
-			initialCentroids.add(tempArr);
+			initialcentroids.add(tempArr);
 		}
 		
-		return initialCentroids;
+		return initialcentroids;
 		
 	}
 	
@@ -336,20 +365,24 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 
 	  }
 	
-	  public ClusteringResult cluster(Map<String, BitSet> data, Map<String,Object> clusterParams)
+    /**
+     * Determines clusters, groups data points per each cluster
+     * @param data input data, represented by Map<List,BitSet>
+     * @param clusterParams algorithm parameters
+     * @return ClusteringResult object
+     */
+	@SuppressWarnings("unchecked")
+	public ClusteringResult cluster(Map<String, BitSet> data, Map<String,Object> clusterParams)
 	  {
-		  Integer maxiterations = 8;
+		    Integer maxiterations = 8;
 			Integer k = 7;
 			@SuppressWarnings("unused")
 			String distanceMetric = "Euclidian";
-			String InitialMethod = ""; //{random, initialIndices, initialCentroids};"
-			List<BitSet> initialCentroids = new ArrayList<BitSet>();
-			List<BitSet> previousInitialCentroids = new ArrayList<BitSet>();
+			String initialmethod = ""; //{random, initialIndices, initialcentroids};"
+			List<BitSet> initialcentroids = new ArrayList<BitSet>();
+			List<BitSet> previousinitialcentroids = new ArrayList<BitSet>();
 			List<String> initialIndices;
 
-			// switch in between 2 methods for convergence
-			boolean ifDataTallAndNarrow = true;
-			
 			if (clusterParams.containsKey("maxiterations"))
 			{
 				maxiterations = (Integer) clusterParams.get("maxiterations");
@@ -362,26 +395,28 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 			
 			//get initial centroids
 			boolean skipRandom = true;
-			if (clusterParams.containsKey("initialMethod"))
+			if (clusterParams.containsKey("initialmethod"))
 			{
-				InitialMethod = (String) clusterParams.get("initialMethod");
-				if (InitialMethod.equals("initialIndices"))
+				initialmethod = (String) clusterParams.get("initialmethod");
+				if (initialmethod.equals("initialindices"))
 				{
-					if ( clusterParams.containsKey("initIndices") )
+					if ( clusterParams.containsKey("initindices") )
 					{
-					initialIndices = (List<String>) clusterParams.get("initIndices");
+					
+					initialIndices = (List<String>) clusterParams.get("initindices");
+					
 					k = initialIndices.size();
-					initialCentroids = getListOfDataPointsPerIndices2(data, initialIndices);	
+					initialcentroids = getListOfDataPointsPerIndicesBs(data, initialIndices);	
 					skipRandom = false;
 					}
 				}
-				else if (InitialMethod.equals("initialCentroids"))
+				else if (initialmethod.equals("initialcentroids"))
 				{
-					if ( clusterParams.containsKey("initialCentroids") )
+					if ( clusterParams.containsKey("initialcentroids") )
 					{
 						List<ArrayList<Integer>> listOCentroids;
-						listOCentroids = (ArrayList<ArrayList<Integer>>) clusterParams.get("initialCentroids");
-						BitSet bitSet;
+						listOCentroids = (ArrayList<ArrayList<Integer>>) clusterParams.get("initialcentroids");
+						BitSet bitSet = new BitSet();
 						for (ArrayList<Integer> centr : listOCentroids)
 						{
 							for (Integer value : centr)
@@ -389,7 +424,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 								bitSet = new BitSet();
 								bitSet.set(value);
 							}
-							initialCentroids.add(bitSet);
+							initialcentroids.add(bitSet);
 						}
 						k = listOCentroids.size();
 						skipRandom = false;
@@ -397,22 +432,22 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 				}
 				else
 				{
-					initialCentroids = getRandomCentroids (data);
+					initialcentroids = getRandomCentroids (data,k);
 					skipRandom = false;
 				}
 				
 			}
 			if (skipRandom)
 			{
-				// over kill, but a fool proof, in case initialMethod was missed completely
-				initialCentroids = getRandomCentroids (data);
+				// over kill, but a fool proof, in case initialmethod was missed completely
+				initialcentroids = getRandomCentroids (data,k);
 			}
 			
 	
 			// calculate Euclidean distances to all data points for each centroid
 			// each centroid represents the center of the cluster
 			
-			List<BitSet> dataToclusterList = new ArrayList<BitSet>();
+			List<Integer> dataToclusterList = new ArrayList<Integer>();
 			List<BitSet> previousDataToclusterList = new ArrayList<BitSet>();
 			
 			List<List<BitSet>> clusterToDataList = new ArrayList<List<BitSet>>();
@@ -431,24 +466,26 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 			}
 			
 			boolean converged = false;
-			Integer iterCount = 0;
 			while ( maxiterations!=0 && converged == false )
 			{
-				@SuppressWarnings("unchecked")
-				List<String> allLables =  (List<String>) data.keySet();
+				Set<String> allLabelsSet = data.keySet();
+				List<String> allLabels = new ArrayList<String>();
+				allLabels.addAll(allLabelsSet);
 				BitSet dataBs;
 				BitSet dataBsPreserved;
 				Integer distance;
 				Integer closestD;
 				Integer clusterNum;
 				List<BitSet> listOfBitSet;
-				List<Integer> listOfDistancePoints = new ArrayList<Integer>();
-	
-				for (String label : allLables)
+				List<Integer> listOfDistancePoints;
+				
+				Integer countDataP = 0;
+				for (String label : allLabels)
 				{
 					dataBs = data.get(label);
 					listOfBitSet = new ArrayList<BitSet>();
-					for (BitSet clusterBs : initialCentroids)
+					listOfDistancePoints = new ArrayList<Integer>();
+					for (BitSet clusterBs : initialcentroids)
 					{
 						dataBsPreserved = (BitSet) dataBs.clone();
 						dataBsPreserved.xor(clusterBs);
@@ -467,13 +504,14 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 					listOfBitSet.add(data.get(label));
 					
 					clusterToDataList.set(clusterNum, listOfBitSet);
+					
+					dataToclusterList.set(countDataP, clusterNum);
+					countDataP++;
 				}
 				
 				// recalculate initial centroids
-							BitSet oneBigCluster;
+				BitSet oneBigCluster;
 				List<BitSet> listOfAllBitsInCluster = new ArrayList<BitSet>();
-				List<List<Integer>> listOfAllIntsInCluster = new ArrayList<List<Integer>>();
-				List<LinkedHashMap<Integer,Integer>> listOfValueToCountMaps = new ArrayList<LinkedHashMap<Integer,Integer>>();
 				
 				LinkedHashMap<Integer,Integer> allFeaturesCountMap;
 				List<LinkedHashMap<Integer,Integer>> listOfAllFeaturesCountMaps = new ArrayList<LinkedHashMap<Integer,Integer>>();
@@ -519,7 +557,7 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 						}	
 					}
 	
-					initialCentroids = new ArrayList<BitSet>();
+					initialcentroids = new ArrayList<BitSet>();
 					BitSet newCentroid = new BitSet();
 					for (Map.Entry<Integer, Integer> entry : newMap.entrySet())
 					{
@@ -538,50 +576,87 @@ public class KmeansAlgorithmImpl implements ClusteringAlgorithm
 						newMap.put(key, value);
 					}
 					listOfMapsForNewCenroids.add((LinkedHashMap<Integer, Integer>) newMap);
-					initialCentroids.add(newCentroid);
+					initialcentroids.add(newCentroid);
 					countOuter++;
 				}
 				
-				converged = ifCentroidsConverged(initialCentroids,initialCentroids);
+				converged = ifCentroidsConverged(previousinitialcentroids,initialcentroids);
+				
+				previousinitialcentroids = initialcentroids;
+						
+				maxiterations--;
 			}
 			
 			
+			Map<String,Integer> dataToclusterMap = new HashMap<String,Integer>();
 			
-	  }
-	  
-	  
-	  private static boolean ifCentroidsConverged( List<BitSet> previousInitialCentroids, List<BitSet> initialCentroids )
-	  {
-		  boolean result = true;
-		  Integer count = 0;
-		  for (BitSet bs : previousInitialCentroids) 
-		  {
-			  if(!initialCentroids.get(count).equals(bs))
-			  {
-				  result = false;
-			  }
-			  count ++;
-		  }
-		  return result;
-	  }
-	  
-	  	private static List<BitSet> getRandomCentroids(Map<String, BitSet> data)
-	  	{
-	  		List<BitSet> initialCentroids;
-			List<String> allLables =  (List<String>) data.keySet();
-			List<Integer> randomIndicies = getListOfRandomIndicies (0, data.size(), k);
-			for (Integer ri : randomIndicies)
+			int i = 0;
+			for (String rowL : data.keySet())
 			{
-				initialCentroids.add(data.get(allLables.get(ri)));
+				
+				dataToclusterMap.put(rowL, dataToclusterList.get(i));
+				i++; 
 			}
-	  	}
-		private static List<BitSet> getListOfDataPointsPerIndices2(Map<String, BitSet> data, List<String> initialIndices)
+				
+			ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath") );
+			return result;
+			
+	  }
+	  
+	/**
+	 * check if centroids are equal  
+	 * @param previousinitialcentroids
+	 * @param initialcentroids
+	 * @return true or falls
+	 */
+	private static boolean ifCentroidsConverged( List<BitSet> previousinitialcentroids, List<BitSet> initialcentroids )
+	{
+		boolean result = true;
+		Integer count = 0;
+		for (BitSet bs : previousinitialcentroids) 
 		{
-			List<BitSet> initialCentroids = new ArrayList<BitSet>();;
-			for (String ini : initialIndices )
+			if(!initialcentroids.get(count).equals(bs))
 			{
-				initialCentroids.add(data.get(ini));
+				result = false;
 			}
-			return initialCentroids;
+			count ++;
 		}
+		return result;
+	}
+	
+	/**
+	 * retrieves random centroids from the data set
+	 * @param data
+	 * @param k
+	 * @return list of BitSets
+	 */
+	private static List<BitSet> getRandomCentroids(Map<String, BitSet> data, Integer k)
+	{
+		List<BitSet> initialcentroids = new ArrayList<BitSet>();
+		Set<String> allLabelsSet =  data.keySet();
+		List<String> allLabels = new ArrayList<String>();
+		allLabels.addAll(allLabelsSet);
+		List<Integer> randomIndicies = getListOfRandomIndicies (0, data.size(), k);
+		for (Integer ri : randomIndicies)
+		{
+			initialcentroids.add(data.get(allLabels.get(ri)));
+		}
+		return initialcentroids;
+	}
+	
+	/**
+	 * retrieves the list of BistSets per indices passed
+	 * @param data
+	 * @param initialIndices
+	 * @return  list of BitSets
+	 */
+	private static List<BitSet> getListOfDataPointsPerIndicesBs(Map<String, BitSet> data, List<String> initialIndices)
+	{
+		List<BitSet> initialcentroids = new ArrayList<BitSet>();;
+		for (String ini : initialIndices )
+		{
+			initialcentroids.add(data.get(ini));
+		}
+		return initialcentroids;
+	}
 }

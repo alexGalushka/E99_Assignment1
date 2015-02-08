@@ -4,7 +4,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
-public interface ClusteringAlgorithm 
+public interface ClusteringMethod
 
 {
 

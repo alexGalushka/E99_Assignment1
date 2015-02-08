@@ -12,7 +12,7 @@ public class ClusteringMain
 {
 	final Map<String, List<String>> clusterParams = new HashMap<>();
 	
-	@SuppressWarnings("unchecked")
+
 	public static void main(String[] args)
 	{
 		Map<String, Object> clusterParam = new HashMap<String,Object>();
@@ -89,7 +89,7 @@ public class ClusteringMain
 			
 			if (args[8].toLowerCase().equals("-distancemetric"))
 			{
-				clusterParam.put("distanceMetric", args[9]);           
+				clusterParam.put("distancemetric", args[9]);           
 			}
 			else
 			{
@@ -103,11 +103,11 @@ public class ClusteringMain
 			{
 				if (args[11].toLowerCase().equals("random"))
 				{
-					clusterParam.put("initialMethod", args[11]);           
+					clusterParam.put("initialmethod", args[11]);           
 				}
 				else if(args[11].toLowerCase().equals("initialindices"))
 				{
-					clusterParam.put("initialMethod", args[11]);
+					clusterParam.put("initialmethod", args[11]);
 					ifToProvideCentroids = true;
 				}
 				else if(args[11].toLowerCase().equals("initialcentroids"))
@@ -131,37 +131,78 @@ public class ClusteringMain
 			{
 				if (args[12].toLowerCase().equals("-initindices"))
 				{
-					if (args[13].contains(",") || args[13].length() == 1)
+					if(ifMatrix)
 					{
-						List<Integer> indicies = getIndiciesAsArrayOfInts (",",args[13]);
-						
-						clusterParam.put("initIndices", indicies);
+						if (args[13].contains(",") || args[13].length() == 1)
+						{
+							List<Integer> indicies = getIndiciesAsArrayOfInts (",",args[13]);
+							
+							clusterParam.put("initindices", indicies);
+						}
+						else
+						{
+							System.err.println("Illegal CLI usage: Provided indicies have to be comma separated");
+							return;
+						}
 					}
 					else
 					{
-						System.err.println("Illegal CLI usage: Provided indicies have to be comma separated");
-						return;
+						if (args[13].contains(",") || args[13].length() == 1)
+						{
+							List<String> indicies = getIndiciesAsArrayOfStrings (",",args[13]);
+							
+							clusterParam.put("initindices", indicies);
+						}
+						else
+						{
+							System.err.println("Illegal CLI usage: Provided indicies have to be comma separated");
+							return;
+						}
 					}
 				}
 				else if (args[12].equals("-initialcentroids"))
 				{
-					if (args[13].contains("|") || args[13].length() == 1)
+					if(ifMatrix)
 					{
-						String[] ss = args[13].split("|");
-						Double[] tempCentroids;
-						List<Double[]> listOfCentroids = new ArrayList<Double[]>();
-						for (int i = 0; i< ss.length; i++)
+						if (args[13].contains("|") || args[13].length() == 1)
 						{
-							tempCentroids =  getCentroidsAsArrayOfDoubles (",",ss[i]);
-							listOfCentroids.add(tempCentroids);
+							String[] ss = args[13].split("|");
+							Double[] tempCentroids;
+							List<Double[]> listOfCentroids = new ArrayList<Double[]>();
+							for (int i = 0; i< ss.length; i++)
+							{
+								tempCentroids =  getCentroidsAsArrayOfDoubles (",",ss[i]);
+								listOfCentroids.add(tempCentroids);
+							}
+							
+							clusterParam.put("initialcentroids", listOfCentroids);
 						}
-						
-						clusterParam.put("initialCentroids", listOfCentroids);
+						else
+						{
+							System.err.println("Illegal CLI usage: Provided centroid points have to be bar separated");
+							return;
+						}
 					}
 					else
 					{
-						System.err.println("Illegal CLI usage: Provided centroid points have to be bar separated");
-						return;
+						if (args[13].contains("|") || args[13].length() == 1)
+						{
+							String[] ss = args[13].split("|");
+							BitSet tempCentroids;
+							List<BitSet> listOfCentroids = new ArrayList<BitSet>();
+							for (int i = 0; i< ss.length; i++)
+							{
+								tempCentroids =  getCentroidsAsBitSet(",",ss[i]);
+								listOfCentroids.add(tempCentroids);
+							}
+							
+							clusterParam.put("initialcentroids", listOfCentroids);
+						}
+						else
+						{
+							System.err.println("Illegal CLI usage: Provided centroid points have to be bar separated");
+							return;
+						}
 					}
 				}
 				else
@@ -176,7 +217,7 @@ public class ClusteringMain
 	
 			
 		    ClusteringResult result;
-		    ClusteringAlgorithm algorithm = new KmeansAlgorithmImpl();
+		    ClusteringMethod algorithm = new KmeansAlgorithmImpl();
 		    
 		    if (ifMatrix)
 		    {
@@ -192,7 +233,6 @@ public class ClusteringMain
 			    }
 			    
 			    Double[][] data = instanceM.getNormalizedMatrix();
-			    //List<String> rowLabels = createLables(data.length);
 			    List<String> rowLabels = instanceM.getRowHeaders();
 			    result = algorithm.cluster(rowLabels, data, clusterParam);
 			    try 
@@ -216,54 +256,18 @@ public class ClusteringMain
 		        	System.out.println("IOError : " + ioe.getMessage());
 		        }
 		        
-		
+ 
+				Map<String, BitSet> dataBs = instanceF.getFingerprintMap();
+				result = algorithm.cluster(dataBs, clusterParam);
+			    try 
+			    {
+					result.writeClusterLabels();
+				} catch (IOException e) 
+			    {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		        
-				Map<String, BitSet> bs = instanceF.getFingerprintMap();
-		        BitSet ace = bs.get("Acebutolol");
-		        BitSet alco = bs.get("Alcohol");
-		        
-		        BitSet new1 = new BitSet();
-
-		        new1.or(alco);
-		        new1.or(ace);
-		        alco.xor(ace);
-		   
-		        
-		        
-		        Integer iniCountAce = ace.cardinality();
-		        Integer iniCountalco = ace.cardinality();
-		        
-		        ace.and(alco);
-		        Integer common = ace.cardinality();
-		        
-		        
-		        
-		        System.out.println("$$$$$$$$$$$$$");
-		        Integer leftAce = iniCountAce - common;
-		        Integer leftalco = iniCountalco - common;
-		        Integer sum = leftAce + leftalco;
-		        
-		        System.out.println(leftAce);
-		        System.out.println("*************************************************************");
-		        
-		        //ace.
-
-
-		        System.out.println("Confirm with Cardinal");
-		        System.out.println(alco.cardinality());
-		        
-		        
-		        ace.and(alco);
-		        //ace.
-
-		       System.out.println(ace.cardinality());
-		        System.out.println("*************************************************************");
-
-		        //cardinace = ace.cardinality();
-		        
-		        @SuppressWarnings("unused")
-		        
-				Double[][] m = instanceF.getRawMatrix();
 		    }
 
 		}
@@ -280,19 +284,12 @@ public class ClusteringMain
 	    
 	}
    
-	/*
-	private static List<String> createLables (int length)
-	{
-	    List<String> rowLabels = new ArrayList<String>();
-	    String label = "inputLabel";
-	    for (Integer i = 1; i<= length; i++)
-	    {
-	    	rowLabels.add(label+i.toString());
-	    }
-	    return rowLabels;
-	}
-	*/
-	
+	/**
+	 * converts String to List of Integers
+	 * @param split
+	 * @param s
+	 * @return list of integers 
+	 */
 	private static List<Integer> getIndiciesAsArrayOfInts (String split, String s)
 	{
 		String[] ss = s.split(split);
@@ -305,7 +302,30 @@ public class ClusteringMain
 		return indicies;
 	}
 	
+	/**
+	 * spits and converts String to List of Strings
+	 * @param split
+	 * @param s
+	 * @return list of strings
+	 */
+	private static List<String> getIndiciesAsArrayOfStrings (String split, String s)
+	{
+		String[] ss = s.split(split);
+		List<String> indicies = new ArrayList<String>();
+		for (int i = 0; i<ss.length; i++)
+		{
+			indicies.add(null);
+			indicies.set(i, ss[i]);
+		}
+		return indicies;
+	}
 	
+	/**
+	 * creates centroid as an array of doubles 
+	 * @param split
+	 * @param s
+	 * @return array of doubles
+	 */
 	private static Double[] getCentroidsAsArrayOfDoubles (String split, String s)
 	{
 		String[] ss = s.split(split);
@@ -315,5 +335,22 @@ public class ClusteringMain
 			centr[i] = Double.parseDouble(ss[i]);
 		}
 		return centr;
+	}
+	
+	/**
+	 * creates centroid as a BitSet
+	 * @param split
+	 * @param s
+	 * @return BistSet centroid
+	 */
+	private static BitSet getCentroidsAsBitSet (String split, String s)
+	{
+		BitSet result  = new BitSet();
+		String[] ss = s.split(split);
+		for (int i = 0; i<ss.length; i++)
+		{
+			result.set(Integer.parseInt(ss[i]));
+		}
+		return result;
 	}
 }
