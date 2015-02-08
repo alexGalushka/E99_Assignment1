@@ -66,7 +66,7 @@ public class ClusteringResult
 	        for (String label : sortedKeys) 
 	        {
 	        	Integer spaceCharachters = 30;
-	        	spaceCharachters -=  label.length();
+	        	spaceCharachters = spaceCharachters -  label.length();
 	        	String space = new String(new char[spaceCharachters]).replace('\0', ' ');
 	            String entryLine = label + space + dataToclusterMap.get(label)+"\n";
 	            writer.write(entryLine);

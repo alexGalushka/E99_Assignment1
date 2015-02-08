@@ -1,30 +1,18 @@
 package edu.harvard.cscie99.clustering.io;
 
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
-public class ClusteringAlgorithmTest
+public class ClusteringMain
 {
-	
-	/*
-	 * 				String[] ss= clusterParams.get("initialIndices").split(","); //passed in in form of 4,5,6,7
-				for(int i=0;i<ss.length;i++)
-				{
-                    
-				}
-				
-				= new ArrayList<Float[]>();//new Float[featuresNum]
-	 */
 	final Map<String, List<String>> clusterParams = new HashMap<>();
 	
-	List<String> input = null;
-	
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
 	{
 		Map<String, Object> clusterParam = new HashMap<String,Object>();
@@ -186,27 +174,27 @@ public class ClusteringAlgorithmTest
 			
 			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("dataFile");
 	
-			MatrixReader instance = new MatrixReader();
-		    try 
-		    {
-		        instance.loadData(FILENAME);
-		    } 
-		    catch(IOException ioe)
-		    {
-		        System.out.println("IOError : " + ioe.getMessage());
-		        fail("Could not load " + FILENAME);
-		        return;
-		    }
-		    
-   
+			
 		    ClusteringResult result;
-		    KmeansAlgorithm algorithm = new KmeansAlgorithm();
+		    ClusteringAlgorithm algorithm = new KmeansAlgorithmImpl();
 		    
 		    if (ifMatrix)
 		    {
-			    Double[][] data = instance.getRawMatrix();
-			    List<String> rowLabels = createLables(data.length);
-			    result = algorithm.cluster(rowLabels, instance.getRawMatrix(), clusterParam);
+				MatrixReader instanceM = new MatrixReader();
+			    try 
+			    {
+			        instanceM.loadData(FILENAME);
+			    } 
+			    catch(IOException ioe)
+			    {
+			        System.out.println("IOError : " + ioe.getMessage());
+			        return;
+			    }
+			    
+			    Double[][] data = instanceM.getNormalizedMatrix();
+			    //List<String> rowLabels = createLables(data.length);
+			    List<String> rowLabels = instanceM.getRowHeaders();
+			    result = algorithm.cluster(rowLabels, data, clusterParam);
 			    try 
 			    {
 					result.writeClusterLabels();
@@ -218,9 +206,66 @@ public class ClusteringAlgorithmTest
 			}
 		    else
 		    {
-		    	
+		        FingerprintReader instanceF = new FingerprintReader();
+		        try 
+		        {
+		        	instanceF.loadData(FILENAME);
+		        }
+		        catch(IOException ioe) 
+		        {
+		        	System.out.println("IOError : " + ioe.getMessage());
+		        }
+		        
+		
+		        
+				Map<String, BitSet> bs = instanceF.getFingerprintMap();
+		        BitSet ace = bs.get("Acebutolol");
+		        BitSet alco = bs.get("Alcohol");
+		        
+		        BitSet new1 = new BitSet();
+
+		        new1.or(alco);
+		        new1.or(ace);
+		        alco.xor(ace);
+		   
+		        
+		        
+		        Integer iniCountAce = ace.cardinality();
+		        Integer iniCountalco = ace.cardinality();
+		        
+		        ace.and(alco);
+		        Integer common = ace.cardinality();
+		        
+		        
+		        
+		        System.out.println("$$$$$$$$$$$$$");
+		        Integer leftAce = iniCountAce - common;
+		        Integer leftalco = iniCountalco - common;
+		        Integer sum = leftAce + leftalco;
+		        
+		        System.out.println(leftAce);
+		        System.out.println("*************************************************************");
+		        
+		        //ace.
+
+
+		        System.out.println("Confirm with Cardinal");
+		        System.out.println(alco.cardinality());
+		        
+		        
+		        ace.and(alco);
+		        //ace.
+
+		       System.out.println(ace.cardinality());
+		        System.out.println("*************************************************************");
+
+		        //cardinace = ace.cardinality();
+		        
+		        @SuppressWarnings("unused")
+		        
+				Double[][] m = instanceF.getRawMatrix();
 		    }
-		    //result = algorithm.cluster(rowLabels, data, clusterParams);
+
 		}
 		else if ( (args.length == 6) && args[5].equals("patrick_javis") )
 		{
@@ -235,6 +280,7 @@ public class ClusteringAlgorithmTest
 	    
 	}
    
+	/*
 	private static List<String> createLables (int length)
 	{
 	    List<String> rowLabels = new ArrayList<String>();
@@ -245,6 +291,7 @@ public class ClusteringAlgorithmTest
 	    }
 	    return rowLabels;
 	}
+	*/
 	
 	private static List<Integer> getIndiciesAsArrayOfInts (String split, String s)
 	{

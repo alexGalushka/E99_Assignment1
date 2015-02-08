@@ -250,7 +250,6 @@ public class MatrixReaderTest {
         }
         Double expResult = 0.788031;
         Double[][] result = instance.getNormalizedMatrix();
-        int size = result.length;
         assertEquals(150, result.length);
         assertEquals(4, result[0].length);
         assertEquals(expResult, result[149][3], 1E-6);

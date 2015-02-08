@@ -10,22 +10,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author henstock
  */
 public class FingerprintReader {
-    private int FIRST_LINE_COUNT = 5;
+    private final int FIRST_LINE_COUNT = 5;
     private String nameDelimiter = "";
     private String fpDelimiter = "";
     public final static Double EPSILON = 1E-8;
     private final ArrayList<String> rowHeaders = new ArrayList<String>();
     public final static String[] DELIMITERS = {",",";","\\t","\\s","\\s+"};
-    @SuppressWarnings("unused")
-	private int rowIndex = 0;
+
     private int maxFpValue = -1;
-    private final HashMap<String,BitSet> name2fp = new HashMap<String,BitSet>();
+    private final Map<String,BitSet> name2fp = new LinkedHashMap<String,BitSet>();
+    private Map<String,List<Integer>> name2intList = null;
     
 
     /**
@@ -66,6 +69,7 @@ public class FingerprintReader {
         maxFpValue = -1;
         rowHeaders.clear();
         name2fp.clear();
+        name2intList = null;
     }
     
     /**
@@ -135,8 +139,6 @@ public class FingerprintReader {
                 String[] firstTokens = tokens[0].split(delimiter);
                 if(firstTokens.length == 2) {
                     try {
-                        @SuppressWarnings("unused")
-						int value = Integer.parseInt(firstTokens[1]);
                         currCount++;
                     } catch(NumberFormatException nfex) {
                         // ignore
@@ -269,7 +271,8 @@ public class FingerprintReader {
     }
     
     /**
-     * Returns a matrix of N(0,1) normalized valus
+     * Returns a matrix of N(0,1) normalized values
+     * (Generally don't use this for fingerprints but it's available)
      */
     public Double[][] getNormalizedMatrix() {
         int numRows = name2fp.size();
@@ -310,6 +313,46 @@ public class FingerprintReader {
     public BitSet getBitSet(String name) {
         return name2fp.get(name);
     }
+    
+    /**
+     * Main routine to fetch the fingerprints for each row entry by name 
+     */
+    public Map<String,BitSet> getFingerprintMap() {
+        return name2fp;
+    }
+
+    /**
+     * REturns Map from row labels to an increasing order of integers corresponding
+     * to the fingerprints.  If it doesn't exist, it will be created from the
+     * name2fp
+     */
+    public Map<String, List<Integer>> getFingerprintMapIntList() {
+        if(name2intList == null) {
+            name2intList = new HashMap<String, List<Integer>>();
+            for(String key : name2fp.keySet()) {
+                BitSet bitSet = name2fp.get(key);
+                List<Integer> intList = bitSet2IntList(bitSet);
+                name2intList.put(key, intList);
+            }
+        }
+        return name2intList;
+    }
+
+    /**
+     * Converts bitSet into an increasing ordered list of integers corresponding
+     * to the bits set.
+     * @param bitSet
+     * @return 
+     */
+    protected List<Integer> bitSet2IntList(BitSet bitSet) {
+        List<Integer> intList = new ArrayList<Integer>();
+        for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+            intList.add(i);
+        }
+        return intList;
+
+    }
+
 }
 
 
