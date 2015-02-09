@@ -15,11 +15,13 @@ public class ClusteringResult
 {
     private Map<String,Integer> dataToclusterMap;
     private String outputFilename;
+    private String algorithm;
     
-    public ClusteringResult( Map<String,Integer> dataToclusterMap, String outputFilename )
+    public ClusteringResult( Map<String,Integer> dataToclusterMap, String outputFilename, String algorithm )
     {
     	this.dataToclusterMap = dataToclusterMap;
     	this.outputFilename = outputFilename;
+    	this.algorithm = algorithm; 
     }
     
 	/**
@@ -31,7 +33,7 @@ public class ClusteringResult
 	{
 
         String time = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-        String name = outputPath+"\\ClusteringResultKMeans_" + time + ".txt";
+        String name = outputPath+"\\ClusteringResult"+algorithm+"_" + time + ".txt";
         writeFile(name);
 
 	}
@@ -44,7 +46,7 @@ public class ClusteringResult
 	{
 
         String time = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-        String name = outputFilename+"\\ClusteringResultKMeans_" + time + ".txt";
+        String name = outputFilename+"\\ClusteringResult"+algorithm+"_" + time + ".txt";
         writeFile(name);
 
 	}

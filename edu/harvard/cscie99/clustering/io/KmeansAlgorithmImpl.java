@@ -199,7 +199,7 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 			i++; 
 		}
 			
-		ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath") );
+		ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans");
 		return result;
 		
 	}
@@ -598,7 +598,7 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 				i++; 
 			}
 				
-			ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath") );
+			ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans" );
 			return result;
 			
 	  }

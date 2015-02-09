@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class ClusteringMain
+public class Clustering
 {
 	final Map<String, List<String>> clusterParams = new HashMap<>();
 	
@@ -16,12 +16,13 @@ public class ClusteringMain
 	public static void main(String[] args)
 	{
 		Map<String, Object> clusterParam = new HashMap<String,Object>();
-		
+	    ClusteringResult result;
+	    ClusteringMethod algorithm;
 		if(args.length == 1)
 		{
 			if (args[0].toLowerCase().equals("-help"))
 			{
-				String s = "***Clustering Algorithm Tool User Manual***\n\n"
+				String s = "***K-Means Clustering Algorithm User Manual***\n\n"
 						+ "About:\n"
 						+ "This analytical tool supports two clustering algorithms: K-Means and Patrick-Javis\n"
 						+ "It works with matrix and fingerprint data sets\n\n"
@@ -38,9 +39,16 @@ public class ClusteringMain
 						+ "method to calculated distance between 2 data, by default is [Euclidean]; it has to be specified though\n\n"
 						+ "sixth input parameter <-initialMethod>:\n"
 						+ "method to initialize centroids, 3 options to pick from: [random], [initialIndices], [initialCentroids]\n\n"
-						+ "seventh input parameter <-initIndices> or <-initialCentroids>:\n"
+						+ "seventh input parameter <-maxiterations>:\n"
+						+ "specify the maximum algorithm iterations e.g. -maxiterations 8 "
+						+ "eighth input parameter <-initIndices> or <-initialCentroids>:\n"
 						+ "it is allowed to specify centroids, if <-initIndices>, specify number of centroids, e.g. 2,3,4\n"
-						+ "if <-initialCentroids> actual points centroids points have to be specified, e.g. 0.2,0.4,0.1,1|0.2,0.4,0.1,1";
+						+ "if <-initialCentroids> actual points centroids points have to be specified, e.g. 0.2,0.4,0.1,1|0.2,0.4,0.1,1\n\n\n"
+						+ "***Jarvis-Patrick Clustering Algorithm User Manual***\n\n"
+						+ "Comply with following for matrix:\n"
+						+ "-mtxfile iris.txt -outpath [provide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5\n"
+						+ "Comply with following for bitset:\n"
+						+ "-fpfile bbb2_daylight.fp.txt -outpath [rovide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5";
 				System.out.println(s);
 			}
 		}
@@ -65,8 +73,8 @@ public class ClusteringMain
 			     System.err.println("Illegal CLI usage: Choose the correct data type, <-mtxfile> for matrix, <-fpfile> for fingerprint");
 			     return;
 			}
-			clusterParam.put("dataType", dataType);
-			clusterParam.put("dataFile",args[1]);
+			clusterParam.put("datatype", dataType);
+			clusterParam.put("datafile",args[1]);
 			
 			if (args[2].toLowerCase().equals("-outpath"))
 			{
@@ -123,19 +131,31 @@ public class ClusteringMain
 			}
 			else
 			{
-				System.err.println("Illegal CLI usage: Fifth input parameter should be <-initialMethod>");
+				System.err.println("Illegal CLI usage: Sixth input parameter should be <-initialMethod>");
+				return;
+			}
+			
+			if (args[12].toLowerCase().equals("-maxiterations")) 
+			{
+				Integer maxIter = Integer.parseInt(args[13]);
+				clusterParam.put("maxiterations", maxIter);           
+
+			}
+			else
+			{
+				System.err.println("Illegal CLI usage: Seventh input parameter should be <-maxiterations>");
 				return;
 			}
 			
 			if (ifToProvideCentroids)
 			{
-				if (args[12].toLowerCase().equals("-initindices"))
+				if (args[14].toLowerCase().equals("-initindices"))
 				{
 					if(ifMatrix)
 					{
-						if (args[13].contains(",") || args[13].length() == 1)
+						if (args[15].contains(",") || args[13].length() == 1)
 						{
-							List<Integer> indicies = getIndiciesAsArrayOfInts (",",args[13]);
+							List<Integer> indicies = getIndiciesAsArrayOfInts (",",args[15]);
 							
 							clusterParam.put("initindices", indicies);
 						}
@@ -147,9 +167,9 @@ public class ClusteringMain
 					}
 					else
 					{
-						if (args[13].contains(",") || args[13].length() == 1)
+						if (args[15].contains(",") || args[15].length() == 1)
 						{
-							List<String> indicies = getIndiciesAsArrayOfStrings (",",args[13]);
+							List<String> indicies = getIndiciesAsArrayOfStrings (",",args[15]);
 							
 							clusterParam.put("initindices", indicies);
 						}
@@ -160,13 +180,13 @@ public class ClusteringMain
 						}
 					}
 				}
-				else if (args[12].equals("-initialcentroids"))
+				else if (args[14].equals("-initialcentroids"))
 				{
 					if(ifMatrix)
 					{
-						if (args[13].contains("|") || args[13].length() == 1)
+						if (args[15].contains("|") || args[15].length() == 1)
 						{
-							String[] ss = args[13].split("|");
+							String[] ss = args[15].split("|");
 							Double[] tempCentroids;
 							List<Double[]> listOfCentroids = new ArrayList<Double[]>();
 							for (int i = 0; i< ss.length; i++)
@@ -185,9 +205,9 @@ public class ClusteringMain
 					}
 					else
 					{
-						if (args[13].contains("|") || args[13].length() == 1)
+						if (args[15].contains("|") || args[15].length() == 1)
 						{
-							String[] ss = args[13].split("|");
+							String[] ss = args[15].split("|");
 							BitSet tempCentroids;
 							List<BitSet> listOfCentroids = new ArrayList<BitSet>();
 							for (int i = 0; i< ss.length; i++)
@@ -213,11 +233,8 @@ public class ClusteringMain
 			}
 			
 			
-			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("dataFile");
-	
-			
-		    ClusteringResult result;
-		    ClusteringMethod algorithm = new KmeansAlgorithmImpl();
+			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("datafile");
+			algorithm = new KmeansAlgorithmImpl();
 		    
 		    if (ifMatrix)
 		    {
@@ -271,14 +288,129 @@ public class ClusteringMain
 		    }
 
 		}
-		else if ( (args.length == 6) && args[5].equals("patrick_javis") )
+		else if ( (args.length == 12) && args[5].equals("jarvis_patrick") )
 		{
+			clusterParam.put("algorithm", "jarvis_patrick");
 			
+			String dataType = null;
+			boolean ifMatrix = false;
+			if (args[0].toLowerCase().equals("-mtxfile"))
+			{
+				dataType = "matrix";
+				ifMatrix = true;
+			}
+			else if (args[0].toLowerCase().equals("-fpfile"))
+			{
+				dataType = "fingerprint";
+			}
+			else
+			{
+			     System.err.println("Illegal CLI usage: Choose the correct data type, <-mtxfile> for matrix, <-fpfile> for fingerprint");
+			     return;
+			}
+			
+			clusterParam.put("datatype", dataType);
+			clusterParam.put("datafile",args[1]);
+			
+			if (args[2].toLowerCase().equals("-outpath"))
+			{
+				clusterParam.put("outpath", args[3]);           
+			}
+			else
+			{
+				System.err.println("Illegal CLI usage: Second input parameter should be <-outpath>");
+				return;
+			}
+			if (args[6].toLowerCase().equals("-distancemetric"))
+			{
+				clusterParam.put("distancemetric", args[7]);           
+			}
+			else
+			{
+				System.err.println("Illegal CLI usage: Fifth input parameter should be <-distanceMetric>");
+				return;
+			}
+			if (args[8].toLowerCase().equals("-numneighbors"))
+			{
+				Integer numN = Integer.parseInt(args[9]);
+				clusterParam.put("numneighbors", numN);
+				
+			}
+			else
+			{
+				System.err.println("Illegal CLI usage: Nineth input parameter should be <-numneighbors>");
+				return;
+			}
+			if (args[10].toLowerCase().equals("-commonneighbors"))
+			{
+				Integer commN = Integer.parseInt(args[11]);
+				clusterParam.put("commonneighbors", commN);
+				
+			}
+			else
+			{
+				System.err.println("Illegal CLI usage: Eleventh input parameter should be <-commonNeighbors>");
+				return;
+			}
+			
+			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("datafile");
+			algorithm = new JarvisPatrickAlgorithmImpl();
+			
+			if (ifMatrix)
+		    {
+				MatrixReader instanceM = new MatrixReader();
+			    try 
+			    {
+			        instanceM.loadData(FILENAME);
+			    } 
+			    catch(IOException ioe)
+			    {
+			        System.out.println("IOError : " + ioe.getMessage());
+			        return;
+			    }
+			    
+			    Double[][] data = instanceM.getNormalizedMatrix();
+			    List<String> rowLabels = instanceM.getRowHeaders();
+			    result = algorithm.cluster(rowLabels, data, clusterParam);
+			    try 
+			    {
+					result.writeClusterLabels();
+				} catch (IOException e) 
+			    {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		    else
+		    {
+		        FingerprintReader instanceF = new FingerprintReader();
+		        try 
+		        {
+		        	instanceF.loadData(FILENAME);
+		        }
+		        catch(IOException ioe) 
+		        {
+		        	System.out.println("IOError : " + ioe.getMessage());
+		        }
+		        
+ 
+				Map<String, BitSet> dataBs = instanceF.getFingerprintMap();
+				result = algorithm.cluster(dataBs, clusterParam);
+			    try 
+			    {
+					result.writeClusterLabels();
+				} catch (IOException e) 
+			    {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        
+		    }
 		}
 		
 		else
 		{
-		     System.err.println("Illegal CLI usage: Make sure all 7 parameters and its values have been entered");
+		     System.err.println("Illegal CLI usage: Make sure all parameters and its values have been entered");
 		     return;
 		}
 	    
