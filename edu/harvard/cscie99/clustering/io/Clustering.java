@@ -8,11 +8,23 @@ import java.util.List;
 import java.util.Map;
 
 
+
+/**
+ * The Class Clustering. This is an application main entry point class.
+ * CLI interface implementation.
+ */
 public class Clustering
 {
+	
+	/** The cluster params. */
 	final Map<String, List<String>> clusterParams = new HashMap<>();
 	
 
+	/**
+	 * The main method.
+	 *
+	 * @param args the arguments
+	 */
 	public static void main(String[] args)
 	{
 		Map<String, Object> clusterParam = new HashMap<String,Object>();
@@ -46,9 +58,9 @@ public class Clustering
 						+ "if <-initialCentroids> actual points centroids points have to be specified, e.g. 0.2,0.4,0.1,1|0.2,0.4,0.1,1\n\n\n"
 						+ "***Jarvis-Patrick Clustering Algorithm User Manual***\n\n"
 						+ "Comply with following for matrix:\n"
-						+ "-mtxfile iris.txt -outpath [provide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5\n"
+						+ "-mtxfile iris.txt -outpath [provide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5 -maxiteraion 8\n"
 						+ "Comply with following for bitset:\n"
-						+ "-fpfile bbb2_daylight.fp.txt -outpath [rovide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5";
+						+ "-fpfile bbb2_daylight.fp.txt -outpath [rovide your path] -algorithm jarvis_patrick -distanceMetric Euclidean -numNeighbors 7 -commonNeighbors 5 -maxiteraion 8";
 				System.out.println(s);
 			}
 		}
@@ -233,8 +245,8 @@ public class Clustering
 			}
 			
 			
-			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("datafile");
-			algorithm = new KmeansAlgorithmImpl();
+			String FILENAME = (String) clusterParam.get("datafile");
+			algorithm = new KmeansAlgorithmImpl(true);
 		    
 		    if (ifMatrix)
 		    {
@@ -257,8 +269,8 @@ public class Clustering
 					result.writeClusterLabels();
 				} catch (IOException e) 
 			    {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					
+					System.out.println("IOError : " + e.getMessage());
 				}
 			}
 		    else
@@ -281,8 +293,7 @@ public class Clustering
 					result.writeClusterLabels();
 				} catch (IOException e) 
 			    {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("IOError : " + e.getMessage());
 				}
 		        
 		    }
@@ -353,7 +364,7 @@ public class Clustering
 				return;
 			}
 			
-			String FILENAME = "C:/Users/apgalush/Documents/Personal/Harvard/Spring2015/CapStone/HW1CodeData/testdata/"+clusterParam.get("datafile");
+			String FILENAME = (String) clusterParam.get("datafile");
 			algorithm = new JarvisPatrickAlgorithmImpl();
 			
 			if (ifMatrix)
@@ -377,8 +388,7 @@ public class Clustering
 					result.writeClusterLabels();
 				} catch (IOException e) 
 			    {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("IOError : " + e.getMessage());
 				}
 			}
 		    else
@@ -401,8 +411,7 @@ public class Clustering
 					result.writeClusterLabels();
 				} catch (IOException e) 
 			    {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("IOError : " + e.getMessage());
 				}
 		        
 		    }
@@ -417,10 +426,11 @@ public class Clustering
 	}
    
 	/**
-	 * converts String to List of Integers
-	 * @param split
-	 * @param s
-	 * @return list of integers 
+	 * converts String to List of Integers.
+	 *
+	 * @param split the split
+	 * @param s the s
+	 * @return list of integers
 	 */
 	private static List<Integer> getIndiciesAsArrayOfInts (String split, String s)
 	{
@@ -435,9 +445,10 @@ public class Clustering
 	}
 	
 	/**
-	 * spits and converts String to List of Strings
-	 * @param split
-	 * @param s
+	 * spits and converts String to List of Strings.
+	 *
+	 * @param split the split
+	 * @param s the s
 	 * @return list of strings
 	 */
 	private static List<String> getIndiciesAsArrayOfStrings (String split, String s)
@@ -453,9 +464,10 @@ public class Clustering
 	}
 	
 	/**
-	 * creates centroid as an array of doubles 
-	 * @param split
-	 * @param s
+	 * creates centroid as an array of doubles .
+	 *
+	 * @param split the split
+	 * @param s the s
 	 * @return array of doubles
 	 */
 	private static Double[] getCentroidsAsArrayOfDoubles (String split, String s)
@@ -470,9 +482,10 @@ public class Clustering
 	}
 	
 	/**
-	 * creates centroid as a BitSet
-	 * @param split
-	 * @param s
+	 * creates centroid as a BitSet.
+	 *
+	 * @param split the split
+	 * @param s the s
 	 * @return BistSet centroid
 	 */
 	private static BitSet getCentroidsAsBitSet (String split, String s)

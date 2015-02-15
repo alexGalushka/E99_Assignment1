@@ -14,27 +14,47 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class FingerprintReader.
  *
  * @author henstock
  */
 public class FingerprintReader {
+    
+    /** The first line count. */
     private final int FIRST_LINE_COUNT = 5;
+    
+    /** The name delimiter. */
     private String nameDelimiter = "";
+    
+    /** The fp delimiter. */
     private String fpDelimiter = "";
+    
+    /** The Constant EPSILON. */
     public final static Double EPSILON = 1E-8;
+    
+    /** The row headers. */
     private final ArrayList<String> rowHeaders = new ArrayList<String>();
+    
+    /** The Constant DELIMITERS. */
     public final static String[] DELIMITERS = {",",";","\\t","\\s","\\s+"};
 
+    /** The max fp value. */
     private int maxFpValue = -1;
+    
+    /** The name2fp. */
     private final Map<String,BitSet> name2fp = new LinkedHashMap<String,BitSet>();
+    
+    /** The name2int list. */
     private Map<String,List<Integer>> name2intList = null;
     
 
     /**
-     * Main routine to load in matrix format of data from filename
-     * @param filename
-     * @throws IOException 
+     * Main routine to load in matrix format of data from filename.
+     *
+     * @param filename the filename
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     public void loadData(String filename) throws IOException {
         FileReader fr = null;
@@ -65,6 +85,9 @@ public class FingerprintReader {
         }
     }
     
+    /**
+     * Clear data.
+     */
     public void clearData() {
         maxFpValue = -1;
         rowHeaders.clear();
@@ -73,11 +96,12 @@ public class FingerprintReader {
     }
     
     /**
-     * Reads from br until it reads linesToRead or EOF and returns ArrayList of line strings
-     * @param br
-     * @param linesToRead
-     * @return
-     * @throws IOException 
+     * Reads from br until it reads linesToRead or EOF and returns ArrayList of line strings.
+     *
+     * @param br the br
+     * @param linesToRead the lines to read
+     * @return the array list
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     protected ArrayList<String> readFirstLines(BufferedReader br, int linesToRead) throws IOException {
         String line;
@@ -91,6 +115,11 @@ public class FingerprintReader {
     }
     
     
+    /**
+     * Compute delimiters.
+     *
+     * @param firstLines the first lines
+     */
     protected void computeDelimiters(ArrayList<String> firstLines) {
         fpDelimiter = computeBestFpDelimiter(firstLines);
         nameDelimiter = computeBestNameDelimiter(firstLines, fpDelimiter);
@@ -98,9 +127,10 @@ public class FingerprintReader {
     }
     
     /**
-     * Returns the delimiter that produces the longest lists for the firstLines
-     * @param firstLines
-     * @return 
+     * Returns the delimiter that produces the longest lists for the firstLines.
+     *
+     * @param firstLines the first lines
+     * @return the string
      */
     protected String computeBestFpDelimiter(ArrayList<String> firstLines) {
         int maxCount = 0;
@@ -125,9 +155,10 @@ public class FingerprintReader {
      * separator between the fingerprints.  Returns the delimiter if it occurs
      * in each line and the 2nd tuple is an integer.  otherwise, it returns
      * fpDelimiter
-     * @param firstLines
-     * @param fpDelimiter
-     * @return 
+     *
+     * @param firstLines the first lines
+     * @param fpDelimiter the fp delimiter
+     * @return the string
      */
     protected String computeBestNameDelimiter(ArrayList<String> firstLines, String fpDelimiter) {
         int maxCount = 0;
@@ -159,10 +190,11 @@ public class FingerprintReader {
     
     /**
      * Row header is numeric values that are not sequential excluding the first line that
-     * could have a column header
-     * @param firstLines
-     * @param nameDelimiter
-     * @return 
+     * could have a column header.
+     *
+     * @param firstLines the first lines
+     * @param nameDelimiter the name delimiter
+     * @return true, if successful
      */
     protected boolean determineIfRowHeader(ArrayList<String> firstLines, String nameDelimiter) {
         int linenum = 0;
@@ -192,6 +224,14 @@ public class FingerprintReader {
     
     
         
+    /**
+     * Parses the first lines.
+     *
+     * @param firstLines the first lines
+     * @param nameDelimiter the name delimiter
+     * @param fpDelimiter the fp delimiter
+     * @throws NumberFormatException the number format exception
+     */
     protected void parseFirstLines(ArrayList<String> firstLines, String nameDelimiter, String fpDelimiter) throws NumberFormatException {
         for(String line : firstLines) {
             parseLine(line, nameDelimiter, fpDelimiter);
@@ -200,10 +240,11 @@ public class FingerprintReader {
     
     /**
      * Fills the rowHeaders if applicable, increments rowIndex, and adds the ArrayList<Double> to the list.
-     * @param line
-     * @param delimiter
-     * @param hasRowHeader
-     * @throws NumberFormatException 
+     *
+     * @param line the line
+     * @param nameDelimiter the name delimiter
+     * @param fpDelimiter the fp delimiter
+     * @throws NumberFormatException the number format exception
      */
     protected void parseLine(String line, String nameDelimiter, String fpDelimiter) throws NumberFormatException {
         String[] tokens = line.split(nameDelimiter);
@@ -238,24 +279,40 @@ public class FingerprintReader {
     }
 
     
+    /**
+     * Gets the row headers.
+     *
+     * @return the row headers
+     */
     public ArrayList<String> getRowHeaders() {
         return rowHeaders;
     }
     
     /**
-     * Returns a matrix of raw values
+     * Returns a matrix of raw values.
+     *
+     * @param index the index
+     * @return the vector
      */
     public BitSet getVector(int index) {
         return name2fp.get(rowHeaders.get(index));
     }
     
+    /**
+     * Gets the vector.
+     *
+     * @param name the name
+     * @return the vector
+     */
     public BitSet getVector(String name) {
         return name2fp.get(name);
     }
     
    
     /**
-     * Returns a matrix of raw values
+     * Returns a matrix of raw values.
+     *
+     * @return the raw matrix
      */
     public Double[][] getRawMatrix() {
         int numRows = name2fp.size();
@@ -272,7 +329,9 @@ public class FingerprintReader {
     
     /**
      * Returns a matrix of N(0,1) normalized values
-     * (Generally don't use this for fingerprints but it's available)
+     * (Generally don't use this for fingerprints but it's available).
+     *
+     * @return the normalized matrix
      */
     public Double[][] getNormalizedMatrix() {
         int numRows = name2fp.size();
@@ -310,12 +369,20 @@ public class FingerprintReader {
         return normMtx;
     }
     
+    /**
+     * Gets the bit set.
+     *
+     * @param name the name
+     * @return the bit set
+     */
     public BitSet getBitSet(String name) {
         return name2fp.get(name);
     }
     
     /**
-     * Main routine to fetch the fingerprints for each row entry by name 
+     * Main routine to fetch the fingerprints for each row entry by name.
+     *
+     * @return the fingerprint map
      */
     public Map<String,BitSet> getFingerprintMap() {
         return name2fp;
@@ -325,6 +392,8 @@ public class FingerprintReader {
      * REturns Map from row labels to an increasing order of integers corresponding
      * to the fingerprints.  If it doesn't exist, it will be created from the
      * name2fp
+     *
+     * @return the fingerprint map int list
      */
     public Map<String, List<Integer>> getFingerprintMapIntList() {
         if(name2intList == null) {
@@ -341,8 +410,9 @@ public class FingerprintReader {
     /**
      * Converts bitSet into an increasing ordered list of integers corresponding
      * to the bits set.
-     * @param bitSet
-     * @return 
+     *
+     * @param bitSet the bit set
+     * @return the list
      */
     protected List<Integer> bitSet2IntList(BitSet bitSet) {
         List<Integer> intList = new ArrayList<Integer>();

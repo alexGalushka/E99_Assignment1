@@ -10,6 +10,7 @@ import java.util.Map;
 
 
 
+// TODO: Auto-generated Javadoc
 /**
  * This code has been borrowed
  * http://stackoverflow.com/questions/109383/how-to-sort-a-mapkey-value-on-the-values-in-java
@@ -19,6 +20,12 @@ import java.util.Map;
 public class ValueComparator 
 {
 	
+	/**
+	 * Sort by value.
+	 *
+	 * @param map the map
+	 * @return the map
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" }) 
 	public Map sortByValue(Map map)
 	{

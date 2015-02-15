@@ -2,14 +2,19 @@ package edu.harvard.cscie99.clustering.io;
 
 import java.util.Comparator;
 
+// TODO: Auto-generated Javadoc
 /**
  * This code has been borrowed.
  * Source: http://codereview.stackexchange.com/questions/37192/number-aware-string-sorting-with-comparator
- * @author apgalush
+ * @author 
  *
  */
 public class NumberAwareStringComparator implements Comparator<String>
 {
+     
+     /* (non-Javadoc)
+      * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+      */
      public int compare(String s1, String s2)
      {
             String[] s1Parts = s1.split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");

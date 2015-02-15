@@ -10,26 +10,47 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class MatrixReader.
  *
  * @author henstock
  */
 public class MatrixReader {
+    
+    /** The first line count. */
     private int FIRST_LINE_COUNT = 5;
+    
+    /** The Constant EPSILON. */
     public final static Double EPSILON = 1E-8;
+    
+    /** The col headers. */
     private final ArrayList<String> colHeaders = new ArrayList<String>();
+    
+    /** The row headers. */
     private final ArrayList<String> rowHeaders = new ArrayList<String>();
+    
+    /** The Constant DELIMITERS. */
     public final static String[] DELIMITERS = {",",";","\\t","\\s","\\s+"};
+    
+    /** The row index. */
     private int rowIndex = 0;
+    
+    /** The matrix data. */
     private final ArrayList<ArrayList<Double>> matrixData = new ArrayList<ArrayList<Double>>();
+    
+    /** The num rows. */
     private int numRows = 0;
+    
+    /** The num cols. */
     private int numCols = 0;
     
 
     /**
-     * Main routine to load in matrix format of data from filename
-     * @param filename
-     * @throws IOException 
+     * Main routine to load in matrix format of data from filename.
+     *
+     * @param filename the filename
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     public void loadData(String filename) throws IOException {
         FileReader fr = null;
@@ -60,6 +81,9 @@ public class MatrixReader {
         }
     }
     
+    /**
+     * Clear data.
+     */
     public void clearData() {
         numRows = 0;
         numCols = 0;
@@ -69,11 +93,12 @@ public class MatrixReader {
     }
     
     /**
-     * Reads from br until it reads linesToRead or EOF and returns ArrayList of line strings
-     * @param br
-     * @param linesToRead
-     * @return
-     * @throws IOException 
+     * Reads from br until it reads linesToRead or EOF and returns ArrayList of line strings.
+     *
+     * @param br the br
+     * @param linesToRead the lines to read
+     * @return the array list
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     protected ArrayList<String> readFirstLines(BufferedReader br, int linesToRead) throws IOException {
         String line;
@@ -88,9 +113,10 @@ public class MatrixReader {
     
     /**
      * Returns the delimiter in DELIMITERS that divides the line most conistentl
-     * across each of the lines
-     * @param lines
-     * @return 
+     * across each of the lines.
+     *
+     * @param lines the lines
+     * @return the string
      */
     protected String determineDelimiter(ArrayList<String> lines) {
         int maxCnt = -1;
@@ -119,10 +145,11 @@ public class MatrixReader {
     
     /**
      * Row header is numeric values that are not sequential excluding the first line that
-     * could have a column header
-     * @param firstLines
-     * @param delimiter
-     * @return 
+     * could have a column header.
+     *
+     * @param firstLines the first lines
+     * @param delimiter the delimiter
+     * @return true, if successful
      */
     protected boolean determineIfRowHeader(ArrayList<String> firstLines, String delimiter) {
         int linenum = 0;
@@ -152,6 +179,14 @@ public class MatrixReader {
     
     
         
+    /**
+     * Parses the first lines.
+     *
+     * @param firstLines the first lines
+     * @param delimiter the delimiter
+     * @param hasRowHeader the has row header
+     * @throws NumberFormatException the number format exception
+     */
     protected void parseFirstLines(ArrayList<String> firstLines, String delimiter, boolean hasRowHeader) throws NumberFormatException {
         int linenum = 0;
         for(String line : firstLines) {
@@ -171,9 +206,10 @@ public class MatrixReader {
      * Examines he tokens and converts it into a header if it's ordered or
      * text.  It fills rowHeaders regardless with the text or col#.  If the
      * first line contains data values, it returns false else true
-     * @param tokens
-     * @param hasRowHeader
-     * @return 
+     *
+     * @param tokens the tokens
+     * @param hasRowHeader the has row header
+     * @return true, if successful
      */
     protected boolean parseFirstLineAsHeader(String[] tokens, boolean hasRowHeader) {
         int startCol = 0;
@@ -221,15 +257,22 @@ public class MatrixReader {
     }
 
 
+    /**
+     * Checks if is integer.
+     *
+     * @param value the value
+     * @return true, if is integer
+     */
     private boolean isInteger(Double value) {
         return Math.abs(value - Math.round(value)) < EPSILON;
     }
     
     /**
-     * Returns true if value = prevValue + 1
-     * @param value
-     * @param prevValue
-     * @return 
+     * Returns true if value = prevValue + 1.
+     *
+     * @param value the value
+     * @param prevValue the prev value
+     * @return true, if successful
      */
     private boolean oneLarger(Double value, Double prevValue) {
         return Math.abs(value - prevValue - 1) < EPSILON;
@@ -237,10 +280,11 @@ public class MatrixReader {
     
     /**
      * Fills the rowHeaders if applicable, increments rowIndex, and adds the ArrayList<Double> to the list.
-     * @param line
-     * @param delimiter
-     * @param hasRowHeader
-     * @throws NumberFormatException 
+     *
+     * @param line the line
+     * @param delimiter the delimiter
+     * @param hasRowHeader the has row header
+     * @throws NumberFormatException the number format exception
      */
     protected void parseLine(String line, String delimiter, boolean hasRowHeader) throws NumberFormatException {
         String[] tokens = line.split(delimiter);
@@ -270,16 +314,28 @@ public class MatrixReader {
     }
 
     
+    /**
+     * Gets the column headers.
+     *
+     * @return the column headers
+     */
     public ArrayList<String> getColumnHeaders() {
         return colHeaders;
     }
     
+    /**
+     * Gets the row headers.
+     *
+     * @return the row headers
+     */
     public ArrayList<String> getRowHeaders() {
         return rowHeaders;
     }
     
     /**
-     * Returns a matrix of raw values
+     * Returns a matrix of raw values.
+     *
+     * @return the raw matrix
      */
     public Double[][] getRawMatrix() {
         Double[][] mtx = new Double[numRows][numCols];
@@ -294,7 +350,9 @@ public class MatrixReader {
     }
     
     /**
-     * Returns a matrix of N(0,1) normalized values
+     * Returns a matrix of N(0,1) normalized values.
+     *
+     * @return the normalized matrix
      */
     public Double[][] getNormalizedMatrix() {
         Double[] means = new Double[numCols];

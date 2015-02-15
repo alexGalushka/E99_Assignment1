@@ -12,13 +12,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class JarvisPatrickAlgorithmImpl.
+ */
 public class JarvisPatrickAlgorithmImpl implements ClusteringMethod
 {
 
 
 	
     /**
-     * Determines clusters, groups data points per each cluster
+     * Determines clusters, groups data points per each cluster.
+     *
      * @param rowLabels list of row labels
      * @param data input data, represented by Double[][]
      * @param clusterParams algorithm parameters
@@ -180,7 +185,8 @@ public class JarvisPatrickAlgorithmImpl implements ClusteringMethod
 	  }
 	
     /**
-     * Determines clusters, groups data points per each cluster
+     * Determines clusters, groups data points per each cluster.
+     *
      * @param data input data, represented by Map<List,BitSet>
      * @param clusterParams algorithm parameters
      * @return ClusteringResult object

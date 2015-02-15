@@ -11,12 +11,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ClusteringResult.
+ */
 public class ClusteringResult 
 {
+    
+    /** The data tocluster map. */
     private Map<String,Integer> dataToclusterMap;
+    
+    /** The output filename. */
     private String outputFilename;
+    
+    /** The algorithm. */
     private String algorithm;
     
+    /**
+     * Instantiates a new clustering result.
+     *
+     * @param dataToclusterMap the data tocluster map
+     * @param outputFilename the output filename
+     * @param algorithm the algorithm
+     */
     public ClusteringResult( Map<String,Integer> dataToclusterMap, String outputFilename, String algorithm )
     {
     	this.dataToclusterMap = dataToclusterMap;
@@ -25,9 +42,10 @@ public class ClusteringResult
     }
     
 	/**
-	 * 
-	 * @param outputPath
-	 * @throws IOException
+	 * Write cluster labels.
+	 *
+	 * @param outputPath the output path
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void writeClusterLabels(String outputPath) throws IOException
 	{
@@ -39,8 +57,9 @@ public class ClusteringResult
 	}
 	
 	/**
-	 * 
-	 * @throws IOException
+	 * Write cluster labels.
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void writeClusterLabels() throws IOException
 	{
@@ -51,6 +70,12 @@ public class ClusteringResult
 
 	}
 	
+	/**
+	 * Write file.
+	 *
+	 * @param name the name
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private void writeFile(String name) throws IOException
 	{
 		BufferedWriter writer = null;
