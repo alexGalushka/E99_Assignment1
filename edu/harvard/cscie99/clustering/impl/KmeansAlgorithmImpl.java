@@ -56,6 +56,26 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 		
 		initializeAlgorithmParametersFirstInterface(data, clusterParams);
 		
+		Map<String,Integer> dataToclusterMap = runKmeansAlgorithmMatrix( rowLabels,  data, false );
+		
+		ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans");
+		flushFirstInterface();
+		return result;
+	}
+	
+    /**
+     * actual algorithm logic for matrix interface
+     * @param rowLabels
+     * @param data
+     * @param ifToTest - special parameter allowing for the JUINT testing, set to false during regular execution
+     * @return
+     */
+	private Map<String,Integer> runKmeansAlgorithmMatrix( List<String> rowLabels, Double[][] data, boolean ifToTest )
+	{
+		if(ifToTest)
+		{
+			initialCentroids = getListOfDataPointsPerIndices(data, initialIndices);
+		}
 		List<Double[]> previousInitialCentroids = new ArrayList<>();
 		List<Integer> dataToclusterList = new ArrayList<>();
 		List<Integer> previousDataToclusterList = new ArrayList<>();
@@ -154,11 +174,8 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 		}	
 		
 		Map<String,Integer> dataToclusterMap = createDataToClusterMap(dataToclusterList, rowLabels);
-		ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans");
-		flushFirstInterface();
-		return result;
-	}
-	
+		return dataToclusterMap;
+	}	
 	/**
 	 * Creates a
 	 * @param dataToclusterList
@@ -438,175 +455,187 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 
 	public ClusteringResult cluster(Map<String, BitSet> data, Map<String,Object> clusterParams)
 	  {
-		    initializeAlgorithmParametersSecondInterface(data, clusterParams);
-			// calculate Euclidean distances to all data points for each centroid
-			// each centroid represents the center of the cluster
-			
-			List<Integer> dataToclusterList = new ArrayList<>();
-			List<BitSet> previousDataToclusterList = new ArrayList<>();
-			List<List<BitSet>> clusterToDataList = new ArrayList<>();
-			// initialize and prefill the arrays with initial values
-			for (int i = 0; i<data.size(); i++)
-			{
-				dataToclusterList.add(i, null);
-				dataToclusterList.set(i, null);
-				previousDataToclusterList.add(i, null);
-			}	
-			for (int i = 0; i<k; i++ )
-			{
-				clusterToDataList.add(null);
-				clusterToDataList.set(i, null);
-			}
-			
-			boolean converged = false;
-			Integer iteration = 0;
-			while ( iteration < maxiterations && converged == false )
-			{
-				Set<String> allLabelsSet = data.keySet();
-				List<String> allLabels = new ArrayList<>();
-				allLabels.addAll(allLabelsSet);
-				BitSet dataBs;
-				BitSet dataBsPreserved;
-				Integer distance;
-				Integer closestD;
-				Integer clusterNum;
-				List<BitSet> listOfBitSet;
-				List<Integer> listOfDistancePoints;
-				// calc data point for initial centroids
-				Integer countDataP = 0;
-				for (String label : allLabels)
-				{
-					dataBs = data.get(label);
-					listOfBitSet = new ArrayList<>();
-					listOfDistancePoints = new ArrayList<>();
-					for (BitSet clusterBs : initialCentroidsBs)
-					{
-						// calculate Euclidean distance, it's actually a Hamming distance, but we treat it
-						// as our qualifier for the distance between 2 points (centroid and data point)
-						dataBsPreserved = (BitSet) dataBs.clone();
-						dataBsPreserved.or(clusterBs);
-						distance = dataBsPreserved.cardinality();
-						listOfDistancePoints.add(distance);
-					}
+	    initializeAlgorithmParametersSecondInterface(data, clusterParams);
 					
-					// determine what centroid is the closest to current data point
-					closestD = Collections.min(listOfDistancePoints);
-					clusterNum = listOfDistancePoints.indexOf(closestD);
-					
-					if (clusterToDataList.get(clusterNum) != null)
-					{
-						listOfBitSet = clusterToDataList.get(clusterNum);
-					}
-					listOfBitSet.add(data.get(label));
-					
-					clusterToDataList.set(clusterNum, listOfBitSet);
-					
-					dataToclusterList.set(countDataP, clusterNum);
-					countDataP++;
-				}
-				
-				// recalculate initial centroids
-				BitSet oneBigCluster; // cluster that holds all data points features available in the cluster
-				List<BitSet> listOfAllBitsInCluster = new ArrayList<>();	
-				LinkedHashMap<Integer,Integer> allFeaturesCountMap; // map which holds count for each feature
-				List<LinkedHashMap<Integer,Integer>> listOfAllFeaturesCountMaps = new ArrayList<>();
-				
-				for (List<BitSet> clusterBsList : clusterToDataList) // iterate through the list of clusters (each cluster is a list of BitSets)
-				{
-					if (!clusterBsList.equals(null))
-					{	
-						oneBigCluster = new BitSet();
-						allFeaturesCountMap = new LinkedHashMap<>();
-						for (BitSet dataPointsBs : clusterBsList)
-						{
-							oneBigCluster.or(dataPointsBs); // populate oneBigCluster
-						}
-						List<Integer> intList= new ArrayList<>();
-				        for (Integer i = oneBigCluster.nextSetBit(0); i >= 0; i = oneBigCluster.nextSetBit(i + 1)) 
-				        {
-				            intList.add(i);
-				            allFeaturesCountMap.put(i, 0); // initialize allFeaturesCountMap
-				        }
-				        listOfAllBitsInCluster.add(oneBigCluster);
-				        listOfAllFeaturesCountMaps.add(allFeaturesCountMap);
-					}
-				}
-
-	            
-	            initialCentroidsBs = new ArrayList<BitSet>();
-	            // for each cluster, since we already got the master BitSet (loop or operation that allowed us to get all features in one cluster),
-	            // calculate how many times we see the particular feature (I call the fingerprint a feature)
-	            List<LinkedHashMap<Integer,Integer>> listOfMapsForNewCenroids = new ArrayList<>();
-	            List<Integer> newDistances = new ArrayList<>();
-	            List<Integer> oldDistances = new ArrayList<>();
-	            Integer countOuter = 0;
-				for (LinkedHashMap<Integer,Integer> map : listOfAllFeaturesCountMaps)
-				{
-					List<BitSet> bsInBuckets = clusterToDataList.get(countOuter);
-					Integer countOfBsInBuckets = bsInBuckets.size();
-					for (Map.Entry<Integer, Integer> entry : map.entrySet())
-					{
-						Integer key = entry.getKey();
-						Integer value = entry.getValue();
-						
-						for (BitSet bs : bsInBuckets)
-						{
-							if(bs.get(key))
-							{
-								// count 1's
-								value = map.get(key);
-								value += 1;
-								map.put(key, value);
-							}
-						}	
-					}
-	                
-					// finally calculate the average centroid
-					BitSet newCentroid = new BitSet();
-					for (Map.Entry<Integer, Integer> entry : map.entrySet())
-					{
-						Double conversion = 0.0;
-						Integer key = entry.getKey();
-						Integer value = entry.getValue();
-						conversion = value.doubleValue()/countOfBsInBuckets.doubleValue();
-						// transform averaged centroid results to 1's and 0's
-						if (conversion < 0.5)
-						{
-							value = 0;
-						}
-						else
-						{
-							value = 1;
-							newCentroid.set(key);
-						}
-						map.put(key, value);
-					}
-					listOfMapsForNewCenroids.add((LinkedHashMap<Integer, Integer>) map);
-					initialCentroidsBs.add(newCentroid);
-					countOuter++;
-				}
-				if (iteration>0)
-				{
-					//converged = ifCentroidsConverged(previousinitialcentroidsBs,initialCentroidsBs);
-					newDistances = calDistancesBetweenCurrentAndPreviousCentr(previousinitialcentroidsBs,initialCentroidsBs);
-				}
-				if (iteration>1)
-				{
-					converged = ifConvergedBs(oldDistances, newDistances);
-				}
-				previousinitialcentroidsBs = new ArrayList<>(initialCentroidsBs);
-				oldDistances = new ArrayList<>(newDistances);
-				iteration++;		
-			}
-			
-			Map<String,Integer> dataToclusterMap = createDataToClusterMap(dataToclusterList, data.keySet());		
-			ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans" );
-			flushSecondInterface();
-			return result;
-			
+		Map<String,Integer> dataToclusterMap = runAlgorithmBs( data, false );		
+		
+		ClusteringResult result = new ClusteringResult( dataToclusterMap, (String) clusterParams.get("outpath"), "KMeans" );
+		flushSecondInterface();
+		return result;
 	  }
 	
+	/**
+	 * actual algorithm logic for BitSet interface
+	 * @param data
+	 * @return pointsClusterMarkingMap
+	 * 
+	 */
+	private Map<String,Integer> runAlgorithmBs( Map<String, BitSet> data, boolean ifToTest)
+	{
+		if(ifToTest)
+		{
+			initialCentroidsBs = getListOfDataPointsPerIndicesBs(data, initialIndicesBs);
+		}
+	    List<Integer> dataToclusterList = new ArrayList<>();
+		List<BitSet> previousDataToclusterList = new ArrayList<>();
+		List<List<BitSet>> clusterToDataList = new ArrayList<>();
+		// initialize and prefill the arrays with initial values
+		for (int i = 0; i<data.size(); i++)
+		{
+			dataToclusterList.add(i, null);
+			dataToclusterList.set(i, null);
+			previousDataToclusterList.add(i, null);
+		}	
+		for (int i = 0; i<k; i++ )
+		{
+			clusterToDataList.add(null);
+			clusterToDataList.set(i, null);
+		}
+		
+		boolean converged = false;
+		Integer iteration = 0;
+		while ( iteration < maxiterations && converged == false )
+		{
+			Set<String> allLabelsSet = data.keySet();
+			List<String> allLabels = new ArrayList<>();
+			allLabels.addAll(allLabelsSet);
+			BitSet dataBs;
+			BitSet dataBsPreserved;
+			Integer distance;
+			Integer closestD;
+			Integer clusterNum;
+			List<BitSet> listOfBitSet;
+			List<Integer> listOfDistancePoints;
+			// calc data point for initial centroids
+			Integer countDataP = 0;
+			for (String label : allLabels)
+			{
+				dataBs = data.get(label);
+				listOfBitSet = new ArrayList<>();
+				listOfDistancePoints = new ArrayList<>();
+				for (BitSet clusterBs : initialCentroidsBs)
+				{
+					// calculate Euclidean distance, it's actually a Hamming distance, but we treat it
+					// as our qualifier for the distance between 2 points (centroid and data point)
+					dataBsPreserved = (BitSet) dataBs.clone();
+					dataBsPreserved.or(clusterBs);
+					distance = dataBsPreserved.cardinality();
+					listOfDistancePoints.add(distance);
+				}
+				
+				// determine what centroid is the closest to current data point
+				closestD = Collections.min(listOfDistancePoints);
+				clusterNum = listOfDistancePoints.indexOf(closestD);
+				
+				if (clusterToDataList.get(clusterNum) != null)
+				{
+					listOfBitSet = clusterToDataList.get(clusterNum);
+				}
+				listOfBitSet.add(data.get(label));
+				
+				clusterToDataList.set(clusterNum, listOfBitSet);
+				
+				dataToclusterList.set(countDataP, clusterNum);
+				countDataP++;
+			}
+			
+			// recalculate initial centroids
+			BitSet oneBigCluster; // cluster that holds all data points features available in the cluster
+			List<BitSet> listOfAllBitsInCluster = new ArrayList<>();	
+			LinkedHashMap<Integer,Integer> allFeaturesCountMap; // map which holds count for each feature
+			List<LinkedHashMap<Integer,Integer>> listOfAllFeaturesCountMaps = new ArrayList<>();
+			
+			for (List<BitSet> clusterBsList : clusterToDataList) // iterate through the list of clusters (each cluster is a list of BitSets)
+			{
+				if (clusterBsList != null)
+				{	
+					oneBigCluster = new BitSet();
+					allFeaturesCountMap = new LinkedHashMap<>();
+					for (BitSet dataPointsBs : clusterBsList)
+					{
+						oneBigCluster.or(dataPointsBs); // populate oneBigCluster
+					}
+					List<Integer> intList= new ArrayList<>();
+			        for (Integer i = oneBigCluster.nextSetBit(0); i >= 0; i = oneBigCluster.nextSetBit(i + 1)) 
+			        {
+			            intList.add(i);
+			            allFeaturesCountMap.put(i, 0); // initialize allFeaturesCountMap
+			        }
+			        listOfAllBitsInCluster.add(oneBigCluster);
+			        listOfAllFeaturesCountMaps.add(allFeaturesCountMap);
+				}
+			}
 
+            
+            initialCentroidsBs = new ArrayList<BitSet>();
+            // for each cluster, since we already got the master BitSet (loop or operation that allowed us to get all features in one cluster),
+            // calculate how many times we see the particular feature (I call the fingerprint a feature)
+            List<LinkedHashMap<Integer,Integer>> listOfMapsForNewCenroids = new ArrayList<>();
+            List<Integer> newDistances = new ArrayList<>();
+            List<Integer> oldDistances = new ArrayList<>();
+            Integer countOuter = 0;
+			for (LinkedHashMap<Integer,Integer> map : listOfAllFeaturesCountMaps)
+			{
+				List<BitSet> bsInBuckets = clusterToDataList.get(countOuter);
+				Integer countOfBsInBuckets = bsInBuckets.size();
+				for (Map.Entry<Integer, Integer> entry : map.entrySet())
+				{
+					Integer key = entry.getKey();
+					Integer value = entry.getValue();
+					
+					for (BitSet bs : bsInBuckets)
+					{
+						if(bs.get(key))
+						{
+							// count 1's
+							value = map.get(key);
+							value += 1;
+							map.put(key, value);
+						}
+					}	
+				}
+                
+				// finally calculate the average centroid
+				BitSet newCentroid = new BitSet();
+				for (Map.Entry<Integer, Integer> entry : map.entrySet())
+				{
+					Double conversion = 0.0;
+					Integer key = entry.getKey();
+					Integer value = entry.getValue();
+					conversion = value.doubleValue()/countOfBsInBuckets.doubleValue();
+					// transform averaged centroid results to 1's and 0's
+					if (conversion < 0.5)
+					{
+						value = 0;
+					}
+					else
+					{
+						value = 1;
+						newCentroid.set(key);
+					}
+					map.put(key, value);
+				}
+				listOfMapsForNewCenroids.add((LinkedHashMap<Integer, Integer>) map);
+				initialCentroidsBs.add(newCentroid);
+				countOuter++;
+			}
+			if (iteration>0)
+			{
+				//converged = ifCentroidsConverged(previousinitialcentroidsBs,initialCentroidsBs);
+				newDistances = calDistancesBetweenCurrentAndPreviousCentr(previousinitialcentroidsBs,initialCentroidsBs);
+			}
+			if (iteration>1)
+			{
+				converged = ifConvergedBs(oldDistances, newDistances);
+			}
+			previousinitialcentroidsBs = new ArrayList<>(initialCentroidsBs);
+			oldDistances = new ArrayList<>(newDistances);
+			iteration++;		
+		}
+		
+		Map<String,Integer> dataToclusterMap = createDataToClusterMap(dataToclusterList, data.keySet());
+		return dataToclusterMap;
+	}		
 	/**
 	 * Reinitializes all the class properties
 	 */
@@ -683,8 +712,6 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 			// overkill, but a fool proof, in case initialmethod was missed completely
 			initialCentroidsBs = getRandomCentroids (data,k);
 		}
-		
-		
 	}
 		
 	/**
