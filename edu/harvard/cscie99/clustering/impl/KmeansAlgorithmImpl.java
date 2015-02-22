@@ -1,9 +1,8 @@
-package edu.harvard.cscie99.clustering.io;
+package edu.harvard.cscie99.clustering.impl;
 
 
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -179,6 +178,7 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 		}
 		return dataToclusterMap;
 	}
+	
 	private Map<String,Integer> createDataToClusterMap(List<Integer> dataToclusterList, Set<String> rowLabels)
 	{
 		Map<String,Integer> dataToclusterMap = new LinkedHashMap<>();
@@ -593,10 +593,6 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 				if (iteration>1)
 				{
 					converged = ifConvergedBs(oldDistances, newDistances);
-					if (converged)
-					{
-						System.out.print("Hi");
-					}
 				}
 				previousinitialcentroidsBs = new ArrayList<>(initialCentroidsBs);
 				oldDistances = new ArrayList<>(newDistances);
@@ -690,28 +686,7 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 		
 		
 	}
-	
-	/**
-	 * check if centroids are equal
-	 * @param previousinitialcentroidsBs the previousinitialcentroidsBs
-	 * @param initialcentroidsBs the initialcentroidsBs
-	 * @return true or falls
-	 */
-	private static boolean ifCentroidsConverged( List<BitSet> previousinitialcentroidsBs, List<BitSet> initialcentroidsBs )
-	{
-		boolean result = true;
-		Integer count = 0;
-		for (BitSet bs : previousinitialcentroidsBs) 
-		{
-			if(!initialcentroidsBs.get(count).equals(bs))
-			{
-				result = false;
-			}
-			count ++;
-		}
-		return result;
-	}
-	
+		
 	/**
 	 * check if centroids are equal
 	 * @param previousinitialcentroidsBs the previousinitialcentroidsBs
@@ -807,5 +782,108 @@ public class KmeansAlgorithmImpl implements ClusteringMethod
 			initialcentroidsBs.add(data.get(ini));
 		}
 		return initialcentroidsBs;
+	}
+	
+	/**
+	 * @return the maxiterations
+	 */
+	public Integer getMaxiterations() {
+		return maxiterations;
+	}
+	/**
+	 * @return the k
+	 */
+	public Integer getK() {
+		return k;
+	}
+	/**
+	 * @return the initialmethod
+	 */
+	public String getInitialmethod() {
+		return initialmethod;
+	}
+	/**
+	 * @return the initialCentroids
+	 */
+	public List<Double[]> getInitialCentroids() {
+		return initialCentroids;
+	}
+	/**
+	 * @return the initialIndices
+	 */
+	public List<Integer> getInitialIndices() {
+		return initialIndices;
+	}
+	/**
+	 * @return the ifDataTallAndNarrow
+	 */
+	public boolean isIfDataTallAndNarrow() {
+		return ifDataTallAndNarrow;
+	}
+	/**
+	 * @return the initialCentroidsBs
+	 */
+	public List<BitSet> getInitialCentroidsBs() {
+		return initialCentroidsBs;
+	}
+	/**
+	 * @return the initialIndicesBs
+	 */
+	public List<String> getInitialIndicesBs() {
+		return initialIndicesBs;
+	}
+	/**
+	 * @return the omega
+	 */
+	public static Double getOmega() {
+		return omega;
+	}
+	/**
+	 * @param maxiterations the maxiterations to set
+	 */
+	public void setMaxiterations(Integer maxiterations) {
+		this.maxiterations = maxiterations;
+	}
+	/**
+	 * @param k the k to set
+	 */
+	public void setK(Integer k) {
+		this.k = k;
+	}
+	/**
+	 * @param initialmethod the initialmethod to set
+	 */
+	public void setInitialmethod(String initialmethod) {
+		this.initialmethod = initialmethod;
+	}
+	/**
+	 * @param initialCentroids the initialCentroids to set
+	 */
+	public void setInitialCentroids(List<Double[]> initialCentroids) {
+		this.initialCentroids = initialCentroids;
+	}
+	/**
+	 * @param initialIndices the initialIndices to set
+	 */
+	public void setInitialIndices(List<Integer> initialIndices) {
+		this.initialIndices = initialIndices;
+	}
+	/**
+	 * @param ifDataTallAndNarrow the ifDataTallAndNarrow to set
+	 */
+	public void setIfDataTallAndNarrow(boolean ifDataTallAndNarrow) {
+		this.ifDataTallAndNarrow = ifDataTallAndNarrow;
+	}
+	/**
+	 * @param initialCentroidsBs the initialCentroidsBs to set
+	 */
+	public void setInitialCentroidsBs(List<BitSet> initialCentroidsBs) {
+		this.initialCentroidsBs = initialCentroidsBs;
+	}
+	/**
+	 * @param initialIndicesBs the initialIndicesBs to set
+	 */
+	public void setInitialIndicesBs(List<String> initialIndicesBs) {
+		this.initialIndicesBs = initialIndicesBs;
 	}
 }

@@ -1,4 +1,4 @@
-package edu.harvard.cscie99.clustering.io;
+package edu.harvard.cscie99.clustering.impl;
 
 import java.util.Collections;
 import java.util.Comparator;

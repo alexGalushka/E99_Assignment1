@@ -2,7 +2,7 @@
  * Reads in the fingerprint and matrix styles of data with or without headers
  */
 
-package edu.harvard.cscie99.clustering.io;
+package edu.harvard.cscie99.clustering.impl;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
